@@ -1,68 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/home_controller.dart';
-import 'package:money_flow/theme/app_theme.dart';
 import 'package:money_flow/theme/colors.dart';
-import 'package:money_flow/views/widgets/balance_calendar.dart';
-import 'package:money_flow/views/widgets/balance_chart.dart';
+import 'package:money_flow/views/widgets/transaction_card.dart';
+import 'package:money_flow/views/screens/add_transaction_screen.dart';
+import 'package:money_flow/views/screens/categories_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  final HomeController controller = Get.put(HomeController());
-  
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(HomeController());
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('MoneyFlow'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.category),
+            onPressed: () => Get.to(() => const CategoriesScreen()),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => Get.toNamed('/settings'),
+            onPressed: () {
+              // TODO: Ir a configuración
+              Get.snackbar('Info', 'Configuración en desarrollo');
+            },
           ),
         ],
       ),
       body: Obx(() {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Resumen de balances
-              _buildBalanceSummary(),
-              const SizedBox(height: 24),
-              
-              // Título de gráfico
-              const Text(
-                'Evolución del Mes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const BalanceChart(),
-              const SizedBox(height: 24),
-              
-              // Calendario
-              const Text(
-                'Balance Diario',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const BalanceCalendar(),
-              const SizedBox(height: 24),
-              
-              // Últimas transacciones
-              _buildRecentTransactions(),
-            ],
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        return RefreshIndicator(
+          onRefresh: controller.loadData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Resumen de balances
+                _buildBalanceSummary(controller),
+                const SizedBox(height: 24),
+                
+                // Últimas transacciones
+                _buildRecentTransactions(controller),
+              ],
+            ),
           ),
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/add-transaction'),
-        child: const Icon(Icons.add),
+        onPressed: () => Get.to(() => AddTransactionScreen()), // <-- QUITAR const
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
   
-  Widget _buildBalanceSummary() {
+  Widget _buildBalanceSummary(HomeController controller) {
     return Row(
       children: [
         Expanded(
@@ -133,14 +136,32 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildRecentTransactions() {
-    final recent = controller.monthlyTransactions.take(5).toList();
-    
-    if (recent.isEmpty) {
-      return const Center(
+  Widget _buildRecentTransactions(HomeController controller) {
+    if (controller.transactions.isEmpty) {
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Text('No hay transacciones recientes'),
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              Text(
+                'No hay transacciones este mes',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Presiona el botón + para agregar una',
+                style: TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -148,39 +169,40 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Últimos Movimientos',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Últimos Movimientos',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // TODO: Ver todas las transacciones
+                Get.snackbar('Info', 'Ver todas en desarrollo');
+              },
+              child: const Text('Ver todas'),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        ...recent.map((transaction) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: transaction.type == 'income'
-                  ? AppColors.secondary.withOpacity(0.2)
-                  : AppColors.danger.withOpacity(0.2),
-              child: Icon(
-                transaction.type == 'income' ? Icons.arrow_upward : Icons.arrow_downward,
-                color: transaction.type == 'income' ? AppColors.secondary : AppColors.danger,
-                size: 20,
-              ),
-            ),
-            title: Text(transaction.description),
-            subtitle: Text(
-              '${transaction.date.day}/${transaction.date.month}/${transaction.date.year}',
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: Text(
-              '${transaction.type == 'income' ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: transaction.type == 'income' ? AppColors.secondary : AppColors.danger,
-              ),
-            ),
-          ),
-        )).toList(),
+        ...controller.transactions.take(10).map((transaction) {
+          return TransactionCard(
+            transaction: transaction,
+            categoryName: controller.getCategoryName(transaction.categoryId),
+            categoryIcon: controller.getCategoryIcon(transaction.categoryId),
+            onTap: () {
+              // TODO: Ver detalle de transacción
+              Get.snackbar('Info', 'Detalle en desarrollo');
+            },
+            onDelete: () => controller.deleteTransaction(transaction.id!),
+          );
+        }).toList(),
       ],
     );
   }
-} 
+}

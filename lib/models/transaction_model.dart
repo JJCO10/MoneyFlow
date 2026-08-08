@@ -1,29 +1,43 @@
-import 'package:floor/floor.dart';
-
-@Entity(tableName: 'transactions')
 class Transaction {
-  @PrimaryKey(autoGenerate: true)
   final int? id;
   final double amount;
   final String type; // 'income' o 'expense'
   final int categoryId;
   final String description;
-  
-  @ColumnInfo(name: 'date')
-  final int dateTimestamp; // Guardamos como timestamp
-  
+  final DateTime date;
   final bool isRecurring;
-  
+
   Transaction({
     this.id,
     required this.amount,
     required this.type,
     required this.categoryId,
     required this.description,
-    required DateTime date,  // Recibimos DateTime
+    required this.date,
     this.isRecurring = false,
-  }) : dateTimestamp = date.millisecondsSinceEpoch; // Convertimos a timestamp
-  
-  // Getter para obtener DateTime fácilmente
-  DateTime get date => DateTime.fromMillisecondsSinceEpoch(dateTimestamp);
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'amount': amount,
+      'type': type,
+      'categoryId': categoryId,
+      'description': description,
+      'date': date.millisecondsSinceEpoch,
+      'isRecurring': isRecurring ? 1 : 0,
+    };
+  }
+
+  factory Transaction.fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      id: map['id'] as int?,
+      amount: map['amount'] as double,
+      type: map['type'] as String,
+      categoryId: map['categoryId'] as int,
+      description: map['description'] as String,
+      date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int),
+      isRecurring: (map['isRecurring'] as int) == 1,
+    );
+  }
 }
