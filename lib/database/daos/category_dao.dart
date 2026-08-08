@@ -3,13 +3,13 @@ import 'package:money_flow/models/category_model.dart';
 
 @dao
 abstract class CategoryDao {
-  @Query('SELECT * FROM Category ORDER BY name ASC')
+  @Query('SELECT * FROM categories ORDER BY name ASC')
   Future<List<Category>> getAllCategories();
   
-  @Query('SELECT * FROM Category WHERE type = :type')
+  @Query('SELECT * FROM categories WHERE type = :type')
   Future<List<Category>> getCategoriesByType(String type);
   
-  @Query('SELECT * FROM Category WHERE id = :id')
+  @Query('SELECT * FROM categories WHERE id = :id')
   Future<Category?> getCategoryById(int id);
   
   @insert

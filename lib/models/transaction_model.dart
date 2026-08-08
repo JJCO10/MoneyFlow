@@ -1,6 +1,6 @@
 import 'package:floor/floor.dart';
 
-@Entity(tableName: 'Transaction')
+@Entity(tableName: 'transactions')
 class Transaction {
   @PrimaryKey(autoGenerate: true)
   final int? id;
@@ -8,7 +8,10 @@ class Transaction {
   final String type; // 'income' o 'expense'
   final int categoryId;
   final String description;
-  final DateTime date;
+  
+  @ColumnInfo(name: 'date')
+  final int dateTimestamp; // Guardamos como timestamp
+  
   final bool isRecurring;
   
   Transaction({
@@ -17,7 +20,10 @@ class Transaction {
     required this.type,
     required this.categoryId,
     required this.description,
-    required this.date,
+    required DateTime date,  // Recibimos DateTime
     this.isRecurring = false,
-  });
+  }) : dateTimestamp = date.millisecondsSinceEpoch; // Convertimos a timestamp
+  
+  // Getter para obtener DateTime fácilmente
+  DateTime get date => DateTime.fromMillisecondsSinceEpoch(dateTimestamp);
 }
