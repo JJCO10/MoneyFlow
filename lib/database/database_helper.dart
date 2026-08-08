@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart' hide Transaction;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' hide Transaction;
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:money_flow/models/category_model.dart';
@@ -14,7 +13,6 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static Database? _database;
-  static bool _initialized = false;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -23,71 +21,66 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    if (!_initialized) {
-      try {
-        if (kIsWeb) {
-          // Para WEB: usar sqflite_common_ffi_web
-          print('🌐 Inicializando sqflite para Web...');
-          databaseFactory = databaseFactoryFfiWeb;
-          print('✅ sqflite inicializado para Web');
-        } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-          // Para Desktop: usar sqflite_common_ffi
-          print('💻 Inicializando sqflite para Desktop...');
-          sqfliteFfiInit();
-          databaseFactory = databaseFactoryFfi;
-          print('✅ sqflite inicializado para Desktop');
-        }
-        _initialized = true;
-      } catch (e) {
-        print('⚠️ Error inicializando sqflite: $e');
-        // Si falla, intentar con la configuración por defecto
-        print('🔄 Intentando con configuración por defecto...');
-      }
+    // Configurar sqflite para desktop
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
     }
 
     // Obtener la ruta de la base de datos
     String dbPath;
     
-    try {
-      if (kIsWeb) {
-        // En WEB: usar un nombre simple
-        dbPath = 'moneyflow.db';
-        print('📁 Ruta DB Web: $dbPath (IndexedDB)');
-      } else {
-        // En MÓVIL/DESKTOP: usar el sistema de archivos
-        try {
-          final directory = await getApplicationDocumentsDirectory();
-          dbPath = join(directory.path, 'moneyflow.db');
-          print('📁 Ruta DB Nativa: $dbPath');
-        } catch (e) {
-          final databasesPath = await getDatabasesPath();
-          dbPath = join(databasesPath, 'moneyflow.db');
-          print('📁 Ruta DB Fallback: $dbPath');
-        }
-      }
-    } catch (e) {
-      print('⚠️ Error obteniendo ruta: $e');
+    if (kIsWeb) {
       dbPath = 'moneyflow.db';
+      print('📁 Ruta DB Web: $dbPath (IndexedDB)');
+    } else {
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        dbPath = join(directory.path, 'moneyflow.db');
+        print('📁 Ruta DB Nativa: $dbPath');
+      } catch (e) {
+        final databasesPath = await getDatabasesPath();
+        dbPath = join(databasesPath, 'moneyflow.db');
+        print('📁 Ruta DB Fallback: $dbPath');
+      }
     }
 
-    try {
-      return await openDatabase(
-        dbPath,
-        version: 1,
-        onCreate: _onCreate,
-      );
-    } catch (e) {
-      print('❌ Error abriendo base de datos: $e');
-      // Si falla, intentar con una base de datos en memoria
-      print('🔄 Intentando con base de datos en memoria...');
-      return await openDatabase(
-        'memory.db',
-        version: 1,
-        onCreate: _onCreate,
-      );
+    // Abrir base de datos con versión 2 (para migración)
+    return await openDatabase(
+      dbPath,
+      version: 2, // <-- VERSIÓN 2 PARA MIGRACIÓN
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // <-- MIGRACIÓN
+    );
+  }
+
+  // ==================== MIGRACIÓN ====================
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print('🔄 Actualizando base de datos de versión $oldVersion a $newVersion');
+    
+    if (oldVersion < 2) {
+      try {
+        // Crear tabla de presupuestos
+        await db.execute('''
+          CREATE TABLE budgets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            categoryId INTEGER NOT NULL,
+            "limit" REAL NOT NULL,
+            period TEXT NOT NULL,
+            createdAt INTEGER NOT NULL,
+            updatedAt INTEGER,
+            FOREIGN KEY (categoryId) REFERENCES categories (id) ON DELETE CASCADE
+          )
+        ''');
+        print('✅ Tabla budgets creada exitosamente');
+      } catch (e) {
+        print('❌ Error creando tabla budgets: $e');
+        rethrow;
+      }
     }
   }
 
+  // ==================== CREACIÓN INICIAL ====================
   Future<void> _onCreate(Database db, int version) async {
     try {
       // Crear tabla de categorías
@@ -116,6 +109,19 @@ class DatabaseHelper {
         )
       ''');
 
+      // Crear tabla de presupuestos
+      await db.execute('''
+        CREATE TABLE budgets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          categoryId INTEGER NOT NULL,
+          "limit" REAL NOT NULL,
+          period TEXT NOT NULL,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER,
+          FOREIGN KEY (categoryId) REFERENCES categories (id) ON DELETE CASCADE
+        )
+      ''');
+
       // Insertar categorías por defecto
       final defaultCategories = [
         // Gastos
@@ -139,7 +145,7 @@ class DatabaseHelper {
       
       print('✅ Base de datos creada con categorías por defecto');
     } catch (e) {
-      print('❌ Error creando tablas: $e');
+      print('❌ Error creando base de datos: $e');
       rethrow;
     }
   }
@@ -261,6 +267,47 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete(
       'transactions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // ==================== MÉTODOS DE PRESUPUESTOS ====================
+  Future<int> insertBudget(Map<String, dynamic> budget) async {
+    final db = await database;
+    return await db.insert('budgets', budget);
+  }
+
+  Future<int> updateBudget(Map<String, dynamic> budget, int id) async {
+    final db = await database;
+    return await db.update(
+      'budgets',
+      budget,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllBudgets() async {
+    final db = await database;
+    return await db.query('budgets');
+  }
+
+  Future<Map<String, dynamic>?> getBudgetByCategory(int categoryId) async {
+    final db = await database;
+    final result = await db.query(
+      'budgets',
+      where: 'categoryId = ?',
+      whereArgs: [categoryId],
+    );
+    if (result.isEmpty) return null;
+    return result.first;
+  }
+
+  Future<int> deleteBudget(int id) async {
+    final db = await database;
+    return await db.delete(
+      'budgets',
       where: 'id = ?',
       whereArgs: [id],
     );

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
+import 'package:money_flow/services/budget_service.dart';
 import 'package:money_flow/views/screens/home_screen.dart';
 import 'package:money_flow/theme/app_theme.dart';
 
@@ -18,6 +19,7 @@ void main() async {
     // Inicializar servicios
     Get.put(CategoryService());
     Get.put(TransactionService());
+    Get.put(BudgetService()); // <-- AGREGADO
     
     print('✅ Servicios inicializados');
     
