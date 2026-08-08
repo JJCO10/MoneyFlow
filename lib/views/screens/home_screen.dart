@@ -58,7 +58,23 @@ class HomeScreen extends StatelessWidget {
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.to(() => AddTransactionScreen()), // <-- QUITAR const
+        onPressed: () async {
+          // Esperar el resultado de la pantalla de agregar
+          final result = await Get.to(() => AddTransactionScreen());
+          if (result == true) {
+            // Recargar datos al regresar
+            await controller.loadData();
+            // Mostrar feedback visual
+            Get.snackbar(
+              'Actualizado',
+              'Los datos se han actualizado',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.blue,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 1),
+            );
+          }
+        },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),

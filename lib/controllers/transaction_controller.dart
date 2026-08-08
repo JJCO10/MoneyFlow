@@ -64,8 +64,11 @@ class TransactionController extends GetxController {
       amountController.clear();
       descriptionController.clear();
       amount.value = 0;
-      selectedCategoryId.value = categories.first.id!;
+      if (categories.isNotEmpty) {
+        selectedCategoryId.value = categories.first.id!;
+      }
       
+      // Cerrar pantalla con resultado true (éxito)
       Get.back(result: true);
       
       Get.snackbar(
@@ -84,6 +87,7 @@ class TransactionController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;
@@ -98,6 +102,7 @@ class TransactionController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
       return false;
     }
@@ -109,6 +114,7 @@ class TransactionController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
       return false;
     }
@@ -120,6 +126,7 @@ class TransactionController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
       return false;
     }

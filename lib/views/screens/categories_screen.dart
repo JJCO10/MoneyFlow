@@ -55,7 +55,9 @@ class CategoriesScreen extends StatelessWidget {
         }
         
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16).copyWith(
+            bottom: 80, // <-- ESPACIO PARA EL FAB
+          ),
           itemCount: controller.categories.length,
           itemBuilder: (context, index) {
             final category = controller.categories[index];

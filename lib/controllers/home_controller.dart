@@ -23,6 +23,11 @@ class HomeController extends GetxController {
     loadData();
   }
   
+  // Método público para recargar desde cualquier parte
+  Future<void> refreshData() async {
+    await loadData();
+  }
+  
   Future<void> loadData() async {
     try {
       isLoading.value = true;

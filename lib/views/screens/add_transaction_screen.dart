@@ -5,8 +5,7 @@ import 'package:money_flow/theme/colors.dart';
 import 'package:intl/intl.dart';
 
 class AddTransactionScreen extends StatelessWidget {
-  // QUITAR const del constructor
-  AddTransactionScreen({super.key}); // <-- SIN const
+  AddTransactionScreen({super.key}); // SIN const
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +19,7 @@ class AddTransactionScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Get.back(),
+          onPressed: () => Get.back(result: false), // <-- Enviar false al cancelar
         ),
       ),
       body: Obx(() {
