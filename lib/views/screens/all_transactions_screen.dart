@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/controllers/all_transactions_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
+import 'package:money_flow/views/screens/edit_transaction_screen.dart';
 
 class AllTransactionsScreen extends StatelessWidget {
   const AllTransactionsScreen({super.key});
@@ -189,9 +190,13 @@ class AllTransactionsScreen extends StatelessWidget {
           transaction: transaction,
           categoryName: controller.getCategoryName(transaction.categoryId),
           categoryIcon: controller.getCategoryIcon(transaction.categoryId),
-          onTap: () {
-            // TODO: Editar transacción
-            Get.snackbar('Info', 'Editar en desarrollo');
+          onTap: () async {
+            final result = await Get.to(() => EditTransactionScreen(
+              transaction: transaction,
+            ));
+            if (result == true) {
+              controller.loadData();
+            }
           },
           onDelete: () => controller.deleteTransaction(transaction.id!),
         );
@@ -202,7 +207,7 @@ class AllTransactionsScreen extends StatelessWidget {
   void _showFilterDialog(BuildContext context, AllTransactionsController controller) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // <-- PERMITIR SCROLL
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -264,7 +269,7 @@ class AllTransactionsScreen extends StatelessWidget {
                   )),
                   const SizedBox(height: 16),
                   
-                  // Filtro por categoría (con scroll)
+                  // Filtro por categoría
                   const Text(
                     'Categoría',
                     style: TextStyle(
@@ -297,7 +302,6 @@ class AllTransactionsScreen extends StatelessWidget {
                               () => controller.filterByCategory(0),
                             ),
                             ...controller.filteredCategories.map((category) {
-                              // Truncar nombres largos para evitar desbordamiento
                               String displayName = category.name;
                               if (displayName.length > 12) {
                                 displayName = '${displayName.substring(0, 12)}...';
@@ -363,7 +367,7 @@ class AllTransactionsScreen extends StatelessWidget {
           color: isSelected ? Colors.white : AppColors.textPrimary,
           fontSize: 12,
         ),
-        overflow: TextOverflow.ellipsis, // <-- Prevenir desbordamiento
+        overflow: TextOverflow.ellipsis,
         maxLines: 1,
       ),
       selected: isSelected,
@@ -371,9 +375,9 @@ class AllTransactionsScreen extends StatelessWidget {
       backgroundColor: Colors.grey[200],
       selectedColor: AppColors.primary,
       checkmarkColor: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // <-- Padding reducido
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16), // <-- Más redondeado
+        borderRadius: BorderRadius.circular(16),
       ),
     );
   }

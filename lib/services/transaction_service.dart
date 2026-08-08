@@ -46,6 +46,11 @@ class TransactionService extends GetxService {
     }
   }
 
+  // <-- MÉTODO AGREGADO
+  Future<void> updateTransaction(Transaction transaction) async {
+    await _db.updateTransaction(transaction);
+  }
+
   Future<void> deleteTransaction(int id) async {
     await _db.deleteTransaction(id);
   }

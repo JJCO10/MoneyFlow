@@ -5,6 +5,7 @@ import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/screens/all_transactions_screen.dart';
 import 'package:money_flow/views/screens/calendar_screen.dart';
 import 'package:money_flow/views/screens/charts_screen.dart';
+import 'package:money_flow/views/screens/edit_transaction_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/categories_screen.dart';
@@ -211,10 +212,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                // TODO: Ver todas las transacciones
-                Get.snackbar('Info', 'Ver todas en desarrollo');
-              },
+              onPressed: () => Get.to(() => const AllTransactionsScreen()),
               child: const Text('Ver todas'),
             ),
           ],
@@ -225,9 +223,13 @@ class HomeScreen extends StatelessWidget {
             transaction: transaction,
             categoryName: controller.getCategoryName(transaction.categoryId),
             categoryIcon: controller.getCategoryIcon(transaction.categoryId),
-            onTap: () {
-              // TODO: Ver detalle de transacción
-              Get.snackbar('Info', 'Detalle en desarrollo');
+            onTap: () async {
+              final result = await Get.to(() => EditTransactionScreen(
+                transaction: transaction,
+              ));
+              if (result == true) {
+                controller.loadData();
+              }
             },
             onDelete: () => controller.deleteTransaction(transaction.id!),
           );

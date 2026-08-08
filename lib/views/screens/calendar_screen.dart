@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:money_flow/views/screens/edit_transaction_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:money_flow/controllers/calendar_controller.dart';
@@ -291,12 +292,16 @@ class CalendarScreen extends StatelessWidget {
             transaction: transaction,
             categoryName: controller.getCategoryName(transaction.categoryId),
             categoryIcon: controller.getCategoryIcon(transaction.categoryId),
-            onTap: () {
-              // TODO: Ver detalle de transacción
-              Get.snackbar('Info', 'Detalle en desarrollo');
+            onTap: () async {
+              final result = await Get.to(() => EditTransactionScreen(
+                transaction: transaction,
+              ));
+              if (result == true) {
+                controller.loadCalendarData();
+              }
             },
             onDelete: () {
-              // TODO: Eliminar transacción
+              // TODO: Eliminar transacción desde el calendario
               Get.snackbar('Info', 'Eliminar en desarrollo');
             },
           ),
