@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/home_controller.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/views/screens/charts_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/categories_screen.dart';
@@ -21,13 +22,16 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.show_chart),
+            onPressed: () => Get.to(() => const ChartsScreen()),
+          ),
+          IconButton(
             icon: const Icon(Icons.category),
             onPressed: () => Get.to(() => const CategoriesScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Ir a configuración
               Get.snackbar('Info', 'Configuración en desarrollo');
             },
           ),

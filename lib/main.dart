@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/views/screens/home_screen.dart';
+import 'package:money_flow/views/screens/charts_screen.dart';
 import 'package:money_flow/theme/colors.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
