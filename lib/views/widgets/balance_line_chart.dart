@@ -10,6 +10,7 @@ class BalanceLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ChartController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Obx(() {
       if (controller.isLoading.value) {
@@ -20,12 +21,14 @@ class BalanceLineChart extends StatelessWidget {
       }
       
       if (controller.dailyBalances.length < 2) {
-        return const SizedBox(
+        return SizedBox(
           height: 200,
           child: Center(
             child: Text(
               'Se necesitan al menos 2 días de datos',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
             ),
           ),
         );
@@ -42,6 +45,9 @@ class BalanceLineChart extends StatelessWidget {
       final yMin = minValue - padding;
       final yMax = maxValue + padding;
       
+      final gridColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+      final textColor = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
+      
       return SizedBox(
         height: 200,
         child: LineChart(
@@ -52,7 +58,7 @@ class BalanceLineChart extends StatelessWidget {
               horizontalInterval: (yMax - yMin) / 5,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
-                  color: Colors.grey.shade300, // <-- CAMBIADO
+                  color: gridColor,
                   strokeWidth: 1,
                 );
               },
@@ -68,9 +74,9 @@ class BalanceLineChart extends StatelessWidget {
                       final day = data[value.toInt()]['day'] as String;
                       return Text(
                         day,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.textLight,
+                          color: textColor,
                         ),
                       );
                     }
@@ -85,9 +91,9 @@ class BalanceLineChart extends StatelessWidget {
                   getTitlesWidget: (value, meta) {
                     return Text(
                       '\$${value.toInt()}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.textLight,
+                        color: textColor,
                       ),
                     );
                   },
@@ -102,7 +108,7 @@ class BalanceLineChart extends StatelessWidget {
             ),
             borderData: FlBorderData(
               show: true,
-              border: Border.all(color: Colors.grey.shade300!, width: 1), // <-- CAMBIADO
+              border: Border.all(color: gridColor, width: 1),
             ),
             minX: 0,
             maxX: data.length - 1.0,
@@ -131,7 +137,7 @@ class BalanceLineChart extends StatelessWidget {
                       radius: 4,
                       color: AppColors.primary,
                       strokeWidth: 2,
-                      strokeColor: Colors.white,
+                      strokeColor: isDark ? Colors.white : Colors.white,
                     );
                   },
                 ),

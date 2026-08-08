@@ -10,6 +10,7 @@ class CategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CategoryController());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(
@@ -32,12 +33,16 @@ class CategoriesScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.category, size: 64, color: Colors.grey[300]),
+                Icon(
+                  Icons.category,
+                  size: 64,
+                  color: isDark ? Colors.grey[600] : Colors.grey[300],
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'No hay categorías',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                     fontSize: 16,
                   ),
                 ),
@@ -45,7 +50,7 @@ class CategoriesScreen extends StatelessWidget {
                 Text(
                   'Presiona el botón + para agregar una',
                   style: TextStyle(
-                    color: AppColors.textLight,
+                    color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight,
                     fontSize: 14,
                   ),
                 ),
@@ -56,7 +61,7 @@ class CategoriesScreen extends StatelessWidget {
         
         return ListView.builder(
           padding: const EdgeInsets.all(16).copyWith(
-            bottom: 80, // <-- ESPACIO PARA EL FAB
+            bottom: 80, // Espacio para el FAB
           ),
           itemCount: controller.categories.length,
           itemBuilder: (context, index) {

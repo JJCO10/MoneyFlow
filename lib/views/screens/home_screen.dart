@@ -6,6 +6,7 @@ import 'package:money_flow/views/screens/all_transactions_screen.dart';
 import 'package:money_flow/views/screens/calendar_screen.dart';
 import 'package:money_flow/views/screens/charts_screen.dart';
 import 'package:money_flow/views/screens/edit_transaction_screen.dart';
+import 'package:money_flow/views/screens/settings_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/categories_screen.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(HomeController());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(
@@ -42,9 +44,7 @@ class HomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              Get.snackbar('Info', 'Configuración en desarrollo');
-            },
+            onPressed: () => Get.to(() => const SettingsScreen()),
           ),
         ],
       ),
@@ -62,11 +62,11 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Resumen de balances
-                _buildBalanceSummary(controller),
+                _buildBalanceSummary(controller, isDark),
                 const SizedBox(height: 24),
                 
                 // Últimas transacciones
-                _buildRecentTransactions(controller),
+                _buildRecentTransactions(controller, isDark),
               ],
             ),
           ),
@@ -74,12 +74,9 @@ class HomeScreen extends StatelessWidget {
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Esperar el resultado de la pantalla de agregar
           final result = await Get.to(() => AddTransactionScreen());
           if (result == true) {
-            // Recargar datos al regresar
             await controller.loadData();
-            // Mostrar feedback visual
             Get.snackbar(
               'Actualizado',
               'Los datos se han actualizado',
@@ -96,7 +93,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildBalanceSummary(HomeController controller) {
+  Widget _buildBalanceSummary(HomeController controller, bool isDark) {
+    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    
     return Row(
       children: [
         Expanded(
@@ -105,6 +105,7 @@ class HomeScreen extends StatelessWidget {
             '\$${controller.totalIncome.value.toStringAsFixed(2)}',
             AppColors.secondary,
             Icons.arrow_upward,
+            textColor,
           ),
         ),
         const SizedBox(width: 12),
@@ -114,6 +115,7 @@ class HomeScreen extends StatelessWidget {
             '\$${controller.totalExpense.value.toStringAsFixed(2)}',
             AppColors.danger,
             Icons.arrow_downward,
+            textColor,
           ),
         ),
         const SizedBox(width: 12),
@@ -123,13 +125,14 @@ class HomeScreen extends StatelessWidget {
             '\$${controller.balance.value.toStringAsFixed(2)}',
             controller.balance.value >= 0 ? AppColors.primary : AppColors.danger,
             Icons.account_balance,
+            textColor,
           ),
         ),
       ],
     );
   }
   
-  Widget _buildSummaryCard(String title, String amount, Color color, IconData icon) {
+  Widget _buildSummaryCard(String title, String amount, Color color, IconData icon, Color textColor) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -148,7 +151,7 @@ class HomeScreen extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: textColor,
                 ),
               ),
             ],
@@ -167,19 +170,27 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildRecentTransactions(HomeController controller) {
+  Widget _buildRecentTransactions(HomeController controller, bool isDark) {
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textLight = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    
     if (controller.transactions.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             children: [
-              Icon(Icons.receipt_long, size: 64, color: Colors.grey[300]),
+              Icon(
+                Icons.receipt_long,
+                size: 64,
+                color: isDark ? Colors.grey[600] : Colors.grey[300],
+              ),
               const SizedBox(height: 16),
               Text(
                 'No hay transacciones este mes',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: textSecondary,
                   fontSize: 16,
                 ),
               ),
@@ -187,7 +198,7 @@ class HomeScreen extends StatelessWidget {
               Text(
                 'Presiona el botón + para agregar una',
                 style: TextStyle(
-                  color: AppColors.textLight,
+                  color: textLight,
                   fontSize: 14,
                 ),
               ),
@@ -203,12 +214,12 @@ class HomeScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Últimos Movimientos',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: textPrimary,
               ),
             ),
             TextButton(

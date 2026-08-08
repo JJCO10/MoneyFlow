@@ -12,6 +12,11 @@ class ChartsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(ChartController());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final cardBg = isDark ? AppColors.darkCard : Colors.white;
+    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
     
     return Scaffold(
       appBar: AppBar(
@@ -47,27 +52,27 @@ class ChartsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Resumen
-            _buildSummary(),
+            _buildSummary(isDark),
             const SizedBox(height: 24),
             
             // Gráfico de barras
-            const Text(
+            Text(
               'Ingresos vs Gastos',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: shadowColor,
                     spreadRadius: 1,
                     blurRadius: 6,
                   ),
@@ -78,23 +83,23 @@ class ChartsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Gráfico circular
-            const Text(
+            Text(
               'Gastos por Categoría',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: shadowColor,
                     spreadRadius: 1,
                     blurRadius: 6,
                   ),
@@ -105,23 +110,23 @@ class ChartsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Gráfico de líneas
-            const Text(
+            Text(
               'Evolución del Balance Diario',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: shadowColor,
                     spreadRadius: 1,
                     blurRadius: 6,
                   ),
@@ -135,8 +140,9 @@ class ChartsScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildSummary() {
+  Widget _buildSummary(bool isDark) {
     final controller = Get.find<ChartController>();
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     
     return Obx(() {
       final income = controller.monthlyIncome.value;
@@ -151,6 +157,7 @@ class ChartsScreen extends StatelessWidget {
               '\$${income.toStringAsFixed(2)}',
               AppColors.secondary,
               Icons.arrow_upward,
+              textSecondary,
             ),
           ),
           const SizedBox(width: 12),
@@ -160,6 +167,7 @@ class ChartsScreen extends StatelessWidget {
               '\$${expense.toStringAsFixed(2)}',
               AppColors.danger,
               Icons.arrow_downward,
+              textSecondary,
             ),
           ),
           const SizedBox(width: 12),
@@ -169,6 +177,7 @@ class ChartsScreen extends StatelessWidget {
               '\$${balance.toStringAsFixed(2)}',
               balance >= 0 ? AppColors.primary : AppColors.danger,
               Icons.account_balance,
+              textSecondary,
             ),
           ),
         ],
@@ -176,7 +185,7 @@ class ChartsScreen extends StatelessWidget {
     });
   }
   
-  Widget _buildSummaryCard(String title, String amount, Color color, IconData icon) {
+  Widget _buildSummaryCard(String title, String amount, Color color, IconData icon, Color textColor) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -195,7 +204,7 @@ class ChartsScreen extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: textColor,
                 ),
               ),
             ],

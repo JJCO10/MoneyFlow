@@ -13,6 +13,7 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CalendarController());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(
@@ -42,25 +43,30 @@ class CalendarScreen extends StatelessWidget {
         return Column(
           children: [
             // Calendario
-            _buildCalendar(controller),
+            _buildCalendar(controller, isDark),
             
             // Transacciones del día seleccionado
-            _buildDayTransactions(controller),
+            _buildDayTransactions(controller, isDark),
           ],
         );
       }),
     );
   }
   
-  Widget _buildCalendar(CalendarController controller) {
+  Widget _buildCalendar(CalendarController controller, bool isDark) {
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textLight = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
+    final cardBg = isDark ? AppColors.darkCard : Colors.white;
+    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: shadowColor,
             spreadRadius: 1,
             blurRadius: 6,
           ),
@@ -85,10 +91,10 @@ class CalendarScreen extends StatelessWidget {
         headerStyle: HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
-          titleTextStyle: const TextStyle(
+          titleTextStyle: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: textPrimary,
           ),
           leftChevronIcon: Icon(
             Icons.chevron_left,
@@ -110,8 +116,12 @@ class CalendarScreen extends StatelessWidget {
           ),
           selectedTextStyle: const TextStyle(color: Colors.white),
           weekendTextStyle: const TextStyle(color: Colors.red),
-          defaultTextStyle: const TextStyle(color: AppColors.textPrimary),
-          outsideTextStyle: const TextStyle(color: AppColors.textLight),
+          defaultTextStyle: TextStyle(
+            color: textPrimary,
+          ),
+          outsideTextStyle: TextStyle(
+            color: textLight,
+          ),
         ),
         calendarBuilders: CalendarBuilders(
           markerBuilder: (context, date, events) {
@@ -146,12 +156,16 @@ class CalendarScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildDayTransactions(CalendarController controller) {
+  Widget _buildDayTransactions(CalendarController controller, bool isDark) {
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final bgColor = isDark ? AppColors.darkBackground : Colors.grey[50];
+    
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: bgColor,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(16),
           ),
@@ -162,28 +176,28 @@ class CalendarScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Transacciones del día',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textPrimary,
                   ),
                 ),
                 Text(
                   DateFormat('dd/MM/yyyy').format(controller.selectedDate.value),
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: textSecondary,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            _buildDaySummary(controller),
+            _buildDaySummary(controller, isDark),
             const SizedBox(height: 8),
             Expanded(
-              child: _buildTransactionsList(controller),
+              child: _buildTransactionsList(controller, isDark),
             ),
           ],
         ),
@@ -191,7 +205,7 @@ class CalendarScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildDaySummary(CalendarController controller) {
+  Widget _buildDaySummary(CalendarController controller, bool isDark) {
     final transactions = controller.selectedDayTransactions;
     final totalIncome = transactions
         .where((t) => t.type == 'income')
@@ -208,6 +222,7 @@ class CalendarScreen extends StatelessWidget {
             'Ingresos',
             '\$${totalIncome.toStringAsFixed(2)}',
             AppColors.secondary,
+            isDark,
           ),
         ),
         const SizedBox(width: 8),
@@ -216,6 +231,7 @@ class CalendarScreen extends StatelessWidget {
             'Gastos',
             '\$${totalExpense.toStringAsFixed(2)}',
             AppColors.danger,
+            isDark,
           ),
         ),
         const SizedBox(width: 8),
@@ -224,13 +240,16 @@ class CalendarScreen extends StatelessWidget {
             'Balance',
             '\$${balance.toStringAsFixed(2)}',
             balance >= 0 ? AppColors.primary : AppColors.danger,
+            isDark,
           ),
         ),
       ],
     );
   }
   
-  Widget _buildSummaryChip(String label, String amount, Color color) {
+  Widget _buildSummaryChip(String label, String amount, Color color, bool isDark) {
+    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
@@ -244,7 +263,7 @@ class CalendarScreen extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 10,
-              color: AppColors.textSecondary,
+              color: textColor,
             ),
           ),
           Text(
@@ -260,20 +279,22 @@ class CalendarScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildTransactionsList(CalendarController controller) {
+  Widget _buildTransactionsList(CalendarController controller, bool isDark) {
     final transactions = controller.selectedDayTransactions;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final iconColor = isDark ? Colors.grey[600] : Colors.grey[400];
     
     if (transactions.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.receipt_long, size: 48, color: Colors.grey),
-            SizedBox(height: 8),
+            Icon(Icons.receipt_long, size: 48, color: iconColor),
+            const SizedBox(height: 8),
             Text(
               'No hay transacciones este día',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: textSecondary,
                 fontSize: 14,
               ),
             ),

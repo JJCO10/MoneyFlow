@@ -10,6 +10,8 @@ class CategoryPieChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ChartController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     
     return Obx(() {
       if (controller.isLoading.value) {
@@ -20,12 +22,12 @@ class CategoryPieChart extends StatelessWidget {
       }
       
       if (controller.categoryExpenses.isEmpty) {
-        return const SizedBox(
+        return SizedBox(
           height: 250,
           child: Center(
             child: Text(
               'No hay gastos para mostrar',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: textColor),
             ),
           ),
         );
@@ -53,7 +55,7 @@ class CategoryPieChart extends StatelessWidget {
             height: 200,
             child: PieChart(
               PieChartData(
-                sections: List.generate(controller.categoryExpenses.length, (index) { // <-- CAMBIADO
+                sections: List.generate(controller.categoryExpenses.length, (index) {
                   final item = controller.categoryExpenses[index];
                   final percentage = (item['amount'] as double) / total;
                   
@@ -82,14 +84,14 @@ class CategoryPieChart extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 4,
-            children: List.generate(controller.categoryExpenses.take(5).length, (index) { // <-- CAMBIADO
+            children: List.generate(controller.categoryExpenses.take(5).length, (index) {
               final item = controller.categoryExpenses[index];
               final percentage = ((item['amount'] as double) / total * 100);
               
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colors[index % colors.length].withOpacity(0.1),
+                  color: (isDark ? Colors.grey[800] : Colors.grey[100])!,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -106,9 +108,9 @@ class CategoryPieChart extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '${item['icon']} ${item['name']} (${percentage.toStringAsFixed(1)}%)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textSecondary,
+                        color: textColor,
                       ),
                     ),
                   ],

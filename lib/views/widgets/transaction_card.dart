@@ -8,7 +8,7 @@ class TransactionCard extends StatelessWidget {
   final String categoryName;
   final String categoryIcon;
   final VoidCallback onTap;
-  final VoidCallback? onDelete; // <-- Asegurar que existe
+  final VoidCallback? onDelete;
 
   const TransactionCard({
     super.key,
@@ -16,7 +16,7 @@ class TransactionCard extends StatelessWidget {
     required this.categoryName,
     required this.categoryIcon,
     required this.onTap,
-    this.onDelete, // <-- Opcional
+    this.onDelete,
   });
 
   @override
@@ -24,6 +24,7 @@ class TransactionCard extends StatelessWidget {
     final isIncome = transaction.type == 'income';
     final color = isIncome ? AppColors.secondary : AppColors.danger;
     final sign = isIncome ? '+' : '-';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Dismissible(
       key: Key(transaction.id.toString()),
@@ -44,6 +45,7 @@ class TransactionCard extends StatelessWidget {
       ),
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
+        color: Theme.of(context).cardColor,
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: color.withOpacity(0.2),
@@ -54,7 +56,10 @@ class TransactionCard extends StatelessWidget {
           ),
           title: Text(
             transaction.description,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -62,7 +67,7 @@ class TransactionCard extends StatelessWidget {
             '${DateFormat('dd/MM/yyyy').format(transaction.date)} • $categoryName',
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, // <-- CORREGIDO
             ),
           ),
           trailing: Text(

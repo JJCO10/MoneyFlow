@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
+import 'package:money_flow/services/shared_preferences_service.dart';
 import 'package:money_flow/views/screens/home_screen.dart';
-import 'package:money_flow/views/screens/charts_screen.dart';
-import 'package:money_flow/theme/colors.dart';
-
+import 'package:money_flow/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
     print('🔄 Iniciando servicios...');
+    
+    // Inicializar preferencias primero
+    await Get.putAsync(() => PreferencesService().init());
     
     // Inicializar servicios
     Get.put(CategoryService());
@@ -38,19 +40,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final prefs = Get.find<PreferencesService>();
+    final isDarkMode = prefs.themeMode == 'dark';
+    
     return GetMaterialApp(
       title: 'MoneyFlow',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          error: AppColors.danger,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: const HomeScreen(),
+      locale: Locale(prefs.language),
+      fallbackLocale: const Locale('es'),
     );
   }
 }

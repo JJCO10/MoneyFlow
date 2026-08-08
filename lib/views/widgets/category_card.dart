@@ -20,9 +20,13 @@ class CategoryCard extends StatelessWidget {
     final typeLabel = isIncome ? 'Ingreso' : 'Gasto';
     final typeColor = isIncome ? AppColors.secondary : AppColors.danger;
     final isDefault = category.isDefault;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      color: Theme.of(context).cardColor,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Color(category.color).withOpacity(0.2),
@@ -33,7 +37,10 @@ class CategoryCard extends StatelessWidget {
         ),
         title: Text(
           category.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: textPrimary,
+          ),
         ),
         subtitle: Row(
           children: [
@@ -57,14 +64,14 @@ class CategoryCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: isDark ? Colors.grey[700] : Colors.grey[200],
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'Por defecto',
                   style: TextStyle(
                     fontSize: 10,
-                    color: Colors.grey,
+                    color: textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

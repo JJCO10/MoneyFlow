@@ -16,6 +16,10 @@ class EditTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(EditTransactionController(transaction));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final fillColor = isDark ? AppColors.darkSurface : Colors.grey[50];
     
     return Scaffold(
       appBar: AppBar(
@@ -51,23 +55,23 @@ class EditTransactionScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Selector de tipo (Ingreso/Gasto)
-              _buildTypeSelector(controller),
+              _buildTypeSelector(controller, isDark),
               const SizedBox(height: 24),
               
               // Campo de monto
-              _buildAmountField(controller),
+              _buildAmountField(controller, isDark, fillColor),
               const SizedBox(height: 16),
               
               // Campo de descripción
-              _buildDescriptionField(controller),
+              _buildDescriptionField(controller, isDark, fillColor),
               const SizedBox(height: 16),
               
               // Selector de categoría
-              _buildCategorySelector(controller),
+              _buildCategorySelector(controller, isDark, fillColor),
               const SizedBox(height: 16),
               
               // Selector de fecha
-              _buildDatePicker(controller),
+              _buildDatePicker(controller, isDark),
               const SizedBox(height: 32),
               
               // Botón actualizar
@@ -79,7 +83,7 @@ class EditTransactionScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildTypeSelector(EditTransactionController controller) {
+  Widget _buildTypeSelector(EditTransactionController controller, bool isDark) {
     return Obx(() => Row(
       children: [
         Expanded(
@@ -90,6 +94,7 @@ class EditTransactionScreen extends StatelessWidget {
             AppColors.danger,
             controller.selectedType.value == 'expense',
             () => controller.updateCategories('expense'),
+            isDark,
           ),
         ),
         const SizedBox(width: 12),
@@ -101,6 +106,7 @@ class EditTransactionScreen extends StatelessWidget {
             AppColors.secondary,
             controller.selectedType.value == 'income',
             () => controller.updateCategories('income'),
+            isDark,
           ),
         ),
       ],
@@ -114,16 +120,20 @@ class EditTransactionScreen extends StatelessWidget {
     Color color,
     bool isSelected,
     VoidCallback onTap,
+    bool isDark,
   ) {
+    final bgColor = isDark ? AppColors.darkSurface : Colors.grey[50];
+    final borderColor = isDark ? Colors.grey[700] : Colors.grey[200];
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.grey[50],
+          color: isSelected ? color.withOpacity(0.1) : bgColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : Colors.grey[200]!,
+            color: isSelected ? color : borderColor!,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -131,14 +141,14 @@ class EditTransactionScreen extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? color : Colors.grey[400],
+              color: isSelected ? color : (isDark ? Colors.grey[500] : Colors.grey[400]),
               size: 28,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : Colors.grey[600],
+                color: isSelected ? color : (isDark ? Colors.grey[400] : Colors.grey[600]),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 16,
               ),
@@ -149,19 +159,23 @@ class EditTransactionScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildAmountField(EditTransactionController controller) {
+  Widget _buildAmountField(EditTransactionController controller, bool isDark, Color? fillColor) {
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    
     return TextField(
       controller: controller.amountController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         labelText: 'Monto',
-        prefixIcon: const Icon(Icons.attach_money),
+        labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+        prefixIcon: Icon(Icons.attach_money, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         prefixText: '\$ ',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: fillColor,
       ),
       onChanged: (value) {
         controller.amount.value = double.tryParse(value) ?? 0;
@@ -169,48 +183,61 @@ class EditTransactionScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildDescriptionField(EditTransactionController controller) {
+  Widget _buildDescriptionField(EditTransactionController controller, bool isDark, Color? fillColor) {
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    
     return TextField(
       controller: controller.descriptionController,
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         labelText: 'Descripción',
+        labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         hintText: 'Ej: Almuerzo, Supermercado, etc.',
-        prefixIcon: const Icon(Icons.description),
+        hintStyle: TextStyle(color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
+        prefixIcon: Icon(Icons.description, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: fillColor,
       ),
       maxLines: 2,
     );
   }
   
-  Widget _buildCategorySelector(EditTransactionController controller) {
+  Widget _buildCategorySelector(EditTransactionController controller, bool isDark, Color? fillColor) {
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    
     return Obx(() {
       if (controller.categories.isEmpty) {
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Center(
-            child: Text('No hay categorías disponibles'),
+          child: Center(
+            child: Text(
+              'No hay categorías disponibles',
+              style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+            ),
           ),
         );
       }
       
       return DropdownButtonFormField<int>(
         value: controller.selectedCategoryId.value,
+        dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
+        style: TextStyle(color: textColor),
         decoration: InputDecoration(
           labelText: 'Categoría',
-          prefixIcon: const Icon(Icons.category),
+          labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+          prefixIcon: Icon(Icons.category, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           filled: true,
-          fillColor: Colors.grey[50],
+          fillColor: fillColor,
         ),
         items: controller.categories.map((category) {
           return DropdownMenuItem<int>(
@@ -222,7 +249,10 @@ class EditTransactionScreen extends StatelessWidget {
                   style: const TextStyle(fontSize: 20),
                 ),
                 const SizedBox(width: 8),
-                Text(category.name),
+                Text(
+                  category.name,
+                  style: TextStyle(color: textColor),
+                ),
               ],
             ),
           );
@@ -236,15 +266,24 @@ class EditTransactionScreen extends StatelessWidget {
     });
   }
   
-  Widget _buildDatePicker(EditTransactionController controller) {
+  Widget _buildDatePicker(EditTransactionController controller, bool isDark) {
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    
     return Obx(() => ListTile(
-      leading: const Icon(Icons.calendar_today),
-      title: const Text('Fecha'),
+      leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+      title: Text(
+        'Fecha',
+        style: TextStyle(color: textColor),
+      ),
       subtitle: Text(
         DateFormat('dd/MM/yyyy').format(controller.selectedDate.value),
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(
+          fontSize: 16,
+          color: textSecondary,
+        ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
       onTap: () async {
         final date = await showDatePicker(
           context: Get.context!,

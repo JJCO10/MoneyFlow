@@ -10,6 +10,7 @@ class IncomeExpenseChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ChartController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Obx(() {
       if (controller.isLoading.value) {
@@ -23,6 +24,9 @@ class IncomeExpenseChart extends StatelessWidget {
       final expense = controller.monthlyExpense.value;
       final maxValue = (income > expense ? income : expense) * 1.2;
       
+      final gridColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+      final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+      
       return SizedBox(
         height: 200,
         child: BarChart(
@@ -32,12 +36,12 @@ class IncomeExpenseChart extends StatelessWidget {
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: Colors.white,
+                tooltipBgColor: isDark ? Colors.grey[800]! : Colors.white,
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   return BarTooltipItem(
-                    '\$${rod.toY.toStringAsFixed(2)}', // <-- CAMBIADO: rod.toY
-                    const TextStyle(
-                      color: Colors.black,
+                    '\$${rod.toY.toStringAsFixed(2)}',
+                    TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   );
@@ -53,9 +57,9 @@ class IncomeExpenseChart extends StatelessWidget {
                     const titles = ['Ingresos', 'Gastos'];
                     return Text(
                       titles[value.toInt()],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: textColor,
                       ),
                     );
                   },
@@ -68,9 +72,9 @@ class IncomeExpenseChart extends StatelessWidget {
                   getTitlesWidget: (value, meta) {
                     return Text(
                       '\$${value.toInt()}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.textLight,
+                        color: textColor,
                       ),
                     );
                   },
@@ -89,7 +93,7 @@ class IncomeExpenseChart extends StatelessWidget {
               horizontalInterval: maxValue / 5,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
-                  color: Colors.grey.shade300, // <-- CAMBIADO
+                  color: gridColor,
                   strokeWidth: 1,
                 );
               },
