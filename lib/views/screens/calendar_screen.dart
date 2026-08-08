@@ -70,7 +70,6 @@ class CalendarScreen extends StatelessWidget {
         firstDay: DateTime(2020, 1, 1),
         lastDay: DateTime(2030, 12, 31),
         focusedDay: controller.focusedDate.value,
-        rowHeight: 56, // <-- Aumentar altura de las filas para más espacio
         selectedDayPredicate: (day) {
           return isSameDay(controller.selectedDate.value, day);
         },
@@ -100,8 +99,6 @@ class CalendarScreen extends StatelessWidget {
           ),
         ),
         calendarStyle: CalendarStyle(
-          // Aumentar el tamaño de las celdas para mejor visibilidad
-          cellMargin: const EdgeInsets.symmetric(vertical: 2), // <-- Margen vertical
           todayDecoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.2),
             shape: BoxShape.circle,
@@ -112,15 +109,8 @@ class CalendarScreen extends StatelessWidget {
           ),
           selectedTextStyle: const TextStyle(color: Colors.white),
           weekendTextStyle: const TextStyle(color: Colors.red),
-          defaultTextStyle: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-          ),
-          outsideTextStyle: const TextStyle(
-            color: AppColors.textLight,
-            fontSize: 14,
-          ),
-          markersMaxCount: 1,
+          defaultTextStyle: const TextStyle(color: AppColors.textPrimary),
+          outsideTextStyle: const TextStyle(color: AppColors.textLight),
         ),
         calendarBuilders: CalendarBuilders(
           markerBuilder: (context, date, events) {
@@ -128,12 +118,12 @@ class CalendarScreen extends StatelessWidget {
             
             if (balance != 0) {
               return Container(
-                margin: const EdgeInsets.only(top: 20), // <-- Mover el balance hacia abajo
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                margin: const EdgeInsets.only(top: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
                   color: balance > 0 
-                      ? AppColors.secondary.withOpacity(0.15)
-                      : AppColors.danger.withOpacity(0.15),
+                      ? AppColors.secondary.withOpacity(0.2)
+                      : AppColors.danger.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -141,11 +131,10 @@ class CalendarScreen extends StatelessWidget {
                       ? '+${balance.toStringAsFixed(0)}'
                       : balance.toStringAsFixed(0),
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 9,
                     color: balance > 0 ? AppColors.secondary : AppColors.danger,
                     fontWeight: FontWeight.bold,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               );
             }
