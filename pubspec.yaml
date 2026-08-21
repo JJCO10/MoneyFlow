@@ -41,6 +41,9 @@ dependencies:
   printing: ^5.11.1
   url_launcher: ^6.2.1
 
+  # Info de la app
+  package_info_plus: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

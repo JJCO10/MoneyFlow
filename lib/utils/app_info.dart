@@ -1,13 +1,16 @@
-import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AppInfo {
-  // Package name fijo (puedes cambiarlo por tu package name real)
-  static const String packageName = 'com.example.money_flow';
-  
-  // Obtener el package name dinámicamente (fallback)
-  static String getPackageName() {
-    // En release, usar el valor fijo
-    // En debug, también usar el valor fijo
-    return packageName;
+  static String? _cachedPackageName;
+
+  /// Obtiene el applicationId real de la app en tiempo de ejecución.
+  /// Se cachea después de la primera llamada.
+  static Future<String> getPackageName() async {
+    if (_cachedPackageName != null) {
+      return _cachedPackageName!;
+    }
+    final info = await PackageInfo.fromPlatform();
+    _cachedPackageName = info.packageName;
+    return _cachedPackageName!;
   }
 }

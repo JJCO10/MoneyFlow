@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:money_flow/utils/file_share_channel.dart';
 import 'package:csv/csv.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -12,53 +12,28 @@ import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/models/transaction_model.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:intl/intl.dart';
-import 'package:money_flow/utils/app_info.dart';
 
 class ExportService extends GetxService {
   final TransactionService _transactionService = Get.find();
   final CategoryService _categoryService = Get.find();
 
-  // Obtener URI para compartir archivos (compatible con Android 7+)
-  Future<Uri> _getFileUri(File file) async {
-    print('📁 Archivo: ${file.path}');
-    print('📁 Nombre del archivo: ${file.path.split('/').last}');
-    
-    // En Android, usar content:// en lugar de file://
-    if (Platform.isAndroid) {
-      try {
-        final packageName = AppInfo.getPackageName();
-        final fileName = file.path.split('/').last;
-        
-        // La URI debe incluir la ruta relativa desde la raíz del cache
-        // Usamos cache-path con path="/" para que el archivo esté en la raíz del cache
-        final uri = Uri.parse('content://$packageName.fileprovider/cache/$fileName');
-        print('📱 URI generada: $uri');
-        return uri;
-      } catch (e) {
-        print('⚠️ Error generando content URI: $e, usando file://');
-        return Uri.file(file.path);
-      }
-    }
-    return Uri.file(file.path);
-  }
-
   // ==================== EXPORTAR A CSV ====================
   Future<void> exportToCSV(DateTime month) async {
     try {
       print('📊 Iniciando exportación a CSV...');
-      
+
       final startOfMonth = DateTime(month.year, month.month, 1);
       final endOfMonth = DateTime(month.year, month.month + 1, 0);
-      
+
       print('📅 Rango de fechas: ${DateFormat('dd/MM/yyyy').format(startOfMonth)} - ${DateFormat('dd/MM/yyyy').format(endOfMonth)}');
-      
+
       final transactions = await _transactionService.getTransactionsBetween(
         startOfMonth,
         endOfMonth,
       );
-      
+
       print('📊 Transacciones encontradas: ${transactions.length}');
-      
+
       if (transactions.isEmpty) {
         Get.snackbar(
           'Sin datos',
@@ -69,28 +44,28 @@ class ExportService extends GetxService {
         );
         return;
       }
-      
+
       final categories = await _categoryService.getAllCategories();
-      
+
       final categoryMap = <int, String>{};
       for (var cat in categories) {
         categoryMap[cat.id!] = cat.name;
       }
-      
+
       final List<List<String>> rows = [];
       rows.add(['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto']);
-      
+
       for (var t in transactions) {
         final type = t.type == 'income' ? 'Ingreso' : 'Gasto';
         final categoryName = categoryMap[t.categoryId] ?? 'Sin categoría';
         final dateStr = DateFormat('dd/MM/yyyy').format(t.date);
-        final amount = t.type == 'income' 
-            ? t.amount.toStringAsFixed(2) 
+        final amount = t.type == 'income'
+            ? t.amount.toStringAsFixed(2)
             : '-${t.amount.toStringAsFixed(2)}';
-        
+
         rows.add([dateStr, type, categoryName, t.description, amount]);
       }
-      
+
       final totalIncome = transactions
           .where((t) => t.type == 'income')
           .fold(0.0, (sum, t) => sum + t.amount);
@@ -98,70 +73,44 @@ class ExportService extends GetxService {
           .where((t) => t.type == 'expense')
           .fold(0.0, (sum, t) => sum + t.amount);
       final balance = totalIncome - totalExpense;
-      
+
       rows.add([]);
       rows.add(['=== RESUMEN ===', '', '', '', '']);
       rows.add(['Total Ingresos', '', '', '', totalIncome.toStringAsFixed(2)]);
       rows.add(['Total Gastos', '', '', '', totalExpense.toStringAsFixed(2)]);
       rows.add(['Balance', '', '', '', balance.toStringAsFixed(2)]);
-      
+
       final csv = const ListToCsvConverter().convert(rows);
-      
+
       final directory = await getTemporaryDirectory();
       print('📁 Directorio temporal: ${directory.path}');
-      
+
       final fileName = 'reporte_${DateFormat('yyyyMM').format(month)}.csv';
       final filePath = '${directory.path}/$fileName';
       final file = File(filePath);
       await file.writeAsString(csv, encoding: utf8);
-      
+
       print('✅ CSV guardado en: $filePath');
       print('📄 Tamaño del archivo: ${await file.length()} bytes');
-      
-      // Verificar que el archivo existe
+
       if (!await file.exists()) {
         throw Exception('El archivo no se creó correctamente');
       }
-      
-      // Usar content URI para Android
-      final uri = await _getFileUri(file);
-      print('📱 URI para compartir: $uri');
-      
-      // Verificar si se puede lanzar la URI
-      final canLaunch = await canLaunchUrl(uri);
-      print('🔗 ¿Se puede lanzar? $canLaunch');
-      
-      if (canLaunch) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        print('✅ URL lanzada correctamente');
-        
+
+      final shared = await FileShareChannel.shareFile(filePath, 'text/csv');
+
+      if (shared) {
         Get.snackbar(
           'Éxito',
-          'Archivo CSV exportado correctamente: $fileName',
+          'Archivo CSV listo para compartir: $fileName',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
       } else {
-        // Intentar con file:// como fallback
-        print('⚠️ No se pudo abrir con content URI, intentando con file://');
-        final fileUri = Uri.file(filePath);
-        if (await canLaunchUrl(fileUri)) {
-          await launchUrl(fileUri, mode: LaunchMode.externalApplication);
-          Get.snackbar(
-            'Éxito',
-            'Archivo CSV exportado correctamente: $fileName',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        } else {
-          throw 'No se puede abrir el archivo CSV';
-        }
+        throw 'No se pudo abrir el selector para compartir el CSV';
       }
-      
     } catch (e) {
       print('❌ Error exportando CSV: $e');
       Get.snackbar(
@@ -179,19 +128,19 @@ class ExportService extends GetxService {
   Future<void> exportToPDF(DateTime month) async {
     try {
       print('📊 Iniciando exportación a PDF...');
-      
+
       final startOfMonth = DateTime(month.year, month.month, 1);
       final endOfMonth = DateTime(month.year, month.month + 1, 0);
-      
+
       print('📅 Rango de fechas: ${DateFormat('dd/MM/yyyy').format(startOfMonth)} - ${DateFormat('dd/MM/yyyy').format(endOfMonth)}');
-      
+
       final transactions = await _transactionService.getTransactionsBetween(
         startOfMonth,
         endOfMonth,
       );
-      
+
       print('📊 Transacciones encontradas: ${transactions.length}');
-      
+
       if (transactions.isEmpty) {
         Get.snackbar(
           'Sin datos',
@@ -202,14 +151,14 @@ class ExportService extends GetxService {
         );
         return;
       }
-      
+
       final categories = await _categoryService.getAllCategories();
-      
+
       final categoryMap = <int, String>{};
       for (var cat in categories) {
         categoryMap[cat.id!] = cat.name;
       }
-      
+
       final totalIncome = transactions
           .where((t) => t.type == 'income')
           .fold(0.0, (sum, t) => sum + t.amount);
@@ -217,13 +166,13 @@ class ExportService extends GetxService {
           .where((t) => t.type == 'expense')
           .fold(0.0, (sum, t) => sum + t.amount);
       final balance = totalIncome - totalExpense;
-      
+
       print('💰 Ingresos: \$${totalIncome.toStringAsFixed(2)}');
       print('💰 Gastos: \$${totalExpense.toStringAsFixed(2)}');
       print('💰 Balance: \$${balance.toStringAsFixed(2)}');
-      
+
       final pdf = pw.Document();
-      
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -259,7 +208,7 @@ class ExportService extends GetxService {
               ),
             ),
             pw.SizedBox(height: 24),
-            
+
             pw.Container(
               padding: pw.EdgeInsets.all(16),
               decoration: pw.BoxDecoration(
@@ -271,13 +220,13 @@ class ExportService extends GetxService {
                 children: [
                   _buildSummaryItem('Ingresos', '\$${totalIncome.toStringAsFixed(2)}', PdfColors.green),
                   _buildSummaryItem('Gastos', '\$${totalExpense.toStringAsFixed(2)}', PdfColors.red),
-                  _buildSummaryItem('Balance', '\$${balance.toStringAsFixed(2)}', 
+                  _buildSummaryItem('Balance', '\$${balance.toStringAsFixed(2)}',
                     balance >= 0 ? PdfColors.blue : PdfColors.red),
                 ],
               ),
             ),
             pw.SizedBox(height: 24),
-            
+
             pw.Text(
               'Transacciones',
               style: pw.TextStyle(
@@ -305,10 +254,10 @@ class ExportService extends GetxService {
                 final type = t.type == 'income' ? 'Ingreso' : 'Gasto';
                 final categoryName = categoryMap[t.categoryId] ?? 'Sin categoría';
                 final dateStr = DateFormat('dd/MM/yyyy').format(t.date);
-                final amount = t.type == 'income' 
-                    ? t.amount.toStringAsFixed(2) 
+                final amount = t.type == 'income'
+                    ? t.amount.toStringAsFixed(2)
                     : '-${t.amount.toStringAsFixed(2)}';
-                
+
                 return [
                   dateStr,
                   type,
@@ -318,7 +267,7 @@ class ExportService extends GetxService {
                 ];
               }).toList(),
             ),
-            
+
             pw.SizedBox(height: 16),
             pw.Container(
               padding: pw.EdgeInsets.all(12),
@@ -346,7 +295,7 @@ class ExportService extends GetxService {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text('Balance:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('\$${balance.toStringAsFixed(2)}', 
+                      pw.Text('\$${balance.toStringAsFixed(2)}',
                         style: pw.TextStyle(color: balance >= 0 ? PdfColors.blue : PdfColors.red)),
                     ],
                   ),
@@ -364,62 +313,36 @@ class ExportService extends GetxService {
           ],
         ),
       );
-      
+
       final directory = await getTemporaryDirectory();
       print('📁 Directorio temporal: ${directory.path}');
-      
+
       final fileName = 'reporte_${DateFormat('yyyyMM').format(month)}.pdf';
       final filePath = '${directory.path}/$fileName';
       final file = File(filePath);
       await file.writeAsBytes(await pdf.save());
-      
+
       print('✅ PDF guardado en: $filePath');
       print('📄 Tamaño del archivo: ${await file.length()} bytes');
-      
-      // Verificar que el archivo existe
+
       if (!await file.exists()) {
         throw Exception('El archivo no se creó correctamente');
       }
-      
-      // Usar content URI para Android
-      final uri = await _getFileUri(file);
-      print('📱 URI para compartir: $uri');
-      
-      // Verificar si se puede lanzar la URI
-      final canLaunch = await canLaunchUrl(uri);
-      print('🔗 ¿Se puede lanzar? $canLaunch');
-      
-      if (canLaunch) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        print('✅ URL lanzada correctamente');
-        
+
+      final shared = await FileShareChannel.shareFile(filePath, 'application/pdf');
+
+      if (shared) {
         Get.snackbar(
           'Éxito',
-          'Archivo PDF exportado correctamente: $fileName',
+          'Archivo PDF listo para compartir: $fileName',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
       } else {
-        // Intentar con file:// como fallback
-        print('⚠️ No se pudo abrir con content URI, intentando con file://');
-        final fileUri = Uri.file(filePath);
-        if (await canLaunchUrl(fileUri)) {
-          await launchUrl(fileUri, mode: LaunchMode.externalApplication);
-          Get.snackbar(
-            'Éxito',
-            'Archivo PDF exportado correctamente: $fileName',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        } else {
-          throw 'No se puede abrir el archivo PDF';
-        }
+        throw 'No se pudo abrir el selector para compartir el PDF';
       }
-      
     } catch (e) {
       print('❌ Error exportando PDF: $e');
       Get.snackbar(
@@ -432,7 +355,7 @@ class ExportService extends GetxService {
       );
     }
   }
-  
+
   pw.Widget _buildSummaryItem(String label, String value, PdfColor color) {
     return pw.Column(
       children: [
