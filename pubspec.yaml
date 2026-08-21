@@ -14,7 +14,6 @@ dependencies:
   sqflite: ^2.3.0
   sqflite_common: ^2.5.0
   sqflite_common_ffi: ^2.3.0
-  sqflite_common_ffi_web: ^1.1.2
   path: ^1.8.3
   path_provider: ^2.1.0
 
@@ -35,6 +34,15 @@ dependencies:
 
   # Preferencias
   shared_preferences: ^2.2.1
+
+  # Exportación de datos
+  csv: ^5.0.2
+  pdf: ^3.10.4
+  printing: ^5.11.1
+  url_launcher: ^6.2.1
+
+  # Info de la app
+  package_info_plus: ^8.0.0
 
 dev_dependencies:
   flutter_test:

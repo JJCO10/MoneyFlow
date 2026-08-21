@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/settings_controller.dart';
+import 'package:money_flow/services/export_service.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:intl/intl.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,11 +11,16 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(SettingsController());
+    final exportService = Get.find<ExportService>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppColors.darkCard : Colors.white;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textLight = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
     final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
+    
+    // Selección de mes para exportar
+    final selectedMonth = DateTime.now().obs;
     
     return Scaffold(
       appBar: AppBar(
@@ -126,10 +133,46 @@ class SettingsScreen extends StatelessWidget {
             
             // Exportar datos
             _buildSection(
-              title: 'Datos',
+              title: 'Exportar Datos',
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
+                // Selector de mes
+                Obx(() => ListTile(
+                  leading: Icon(Icons.calendar_month, color: AppColors.primary),
+                  title: Text(
+                    'Seleccionar Mes',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    DateFormat('MMMM yyyy').format(selectedMonth.value),
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: selectedMonth.value,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDatePickerMode: DatePickerMode.year,
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: AppColors.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (date != null) {
+                      selectedMonth.value = date;
+                    }
+                  },
+                )),
+                const Divider(height: 1),
                 ListTile(
                   leading: Icon(Icons.picture_as_pdf, color: AppColors.primary),
                   title: Text(
@@ -137,55 +180,25 @@ class SettingsScreen extends StatelessWidget {
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Reporte mensual con gráficos',
+                    'Reporte mensual con resumen',
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
-                  onTap: () {
-                    Get.snackbar('Info', 'Exportar PDF en desarrollo');
-                  },
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: () => exportService.exportToPDF(selectedMonth.value),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: Icon(Icons.table_chart, color: AppColors.primary),
                   title: Text(
-                    'Exportar a Excel',
+                    'Exportar a Excel (CSV)',
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Datos en formato CSV',
+                    'Datos en formato tabular',
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
-                  onTap: () {
-                    Get.snackbar('Info', 'Exportar Excel en desarrollo');
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Presupuestos
-            _buildSection(
-              title: 'Presupuestos',
-              cardBg: cardBg,
-              shadowColor: shadowColor,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.account_balance_wallet, color: AppColors.primary),
-                  title: Text(
-                    'Gestionar Presupuestos',
-                    style: TextStyle(color: textPrimary),
-                  ),
-                  subtitle: Text(
-                    'Establecer límites por categoría',
-                    style: TextStyle(color: textSecondary),
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
-                  onTap: () {
-                    Get.snackbar('Info', 'Presupuestos en desarrollo');
-                  },
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: () => exportService.exportToCSV(selectedMonth.value),
                 ),
               ],
             ),
