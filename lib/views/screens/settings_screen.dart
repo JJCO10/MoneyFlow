@@ -4,6 +4,7 @@ import 'package:money_flow/controllers/settings_controller.dart';
 import 'package:money_flow/services/export_service.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -19,12 +20,11 @@ class SettingsScreen extends StatelessWidget {
     final textLight = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
     final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
     
-    // Selección de mes para exportar
     final selectedMonth = DateTime.now().obs;
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: Text('settings_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -39,17 +39,17 @@ class SettingsScreen extends StatelessWidget {
           children: [
             // Tema
             _buildSection(
-              title: 'Apariencia',
+              title: 'appearance'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 Obx(() => SwitchListTile(
                   title: Text(
-                    'Modo Oscuro',
+                    'dark_mode'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Cambiar tema de la app',
+                    'dark_mode_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   value: controller.isDarkMode.value,
@@ -63,7 +63,7 @@ class SettingsScreen extends StatelessWidget {
             
             // Moneda
             _buildSection(
-              title: 'Moneda',
+              title: 'currency'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
@@ -72,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
                   dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
                   style: TextStyle(color: textPrimary),
                   decoration: InputDecoration(
-                    labelText: 'Moneda predeterminada',
+                    labelText: 'default_currency'.t,
                     labelStyle: TextStyle(color: textSecondary),
                     border: const OutlineInputBorder(),
                   ),
@@ -98,7 +98,7 @@ class SettingsScreen extends StatelessWidget {
             
             // Idioma
             _buildSection(
-              title: 'Idioma',
+              title: 'language'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
@@ -107,7 +107,7 @@ class SettingsScreen extends StatelessWidget {
                   dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
                   style: TextStyle(color: textPrimary),
                   decoration: InputDecoration(
-                    labelText: 'Idioma',
+                    labelText: 'select_language'.t,
                     labelStyle: TextStyle(color: textSecondary),
                     border: const OutlineInputBorder(),
                   ),
@@ -133,15 +133,14 @@ class SettingsScreen extends StatelessWidget {
             
             // Exportar datos
             _buildSection(
-              title: 'Exportar Datos',
+              title: 'export_title'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
-                // Selector de mes
                 Obx(() => ListTile(
                   leading: Icon(Icons.calendar_month, color: AppColors.primary),
                   title: Text(
-                    'Seleccionar Mes',
+                    'select_month'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
@@ -176,11 +175,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.picture_as_pdf, color: AppColors.primary),
                   title: Text(
-                    'Exportar a PDF',
+                    'export_pdf'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Reporte mensual con resumen',
+                    'export_pdf_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
@@ -190,11 +189,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.table_chart, color: AppColors.primary),
                   title: Text(
-                    'Exportar a Excel (CSV)',
+                    'export_csv'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Datos en formato tabular',
+                    'export_csv_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
@@ -207,14 +206,14 @@ class SettingsScreen extends StatelessWidget {
             
             // Acerca de
             _buildSection(
-              title: 'Acerca de',
+              title: 'about'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 ListTile(
                   leading: Icon(Icons.info, color: AppColors.primary),
                   title: Text(
-                    'Versión',
+                    'version'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
@@ -225,11 +224,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.favorite, color: AppColors.primary),
                   title: Text(
-                    'MoneyFlow',
+                    'app_name'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Tu app financiera personal',
+                    'app_description'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                 ),

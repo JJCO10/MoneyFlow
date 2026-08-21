@@ -67,7 +67,7 @@ class TransactionCard extends StatelessWidget {
             '${DateFormat('dd/MM/yyyy').format(transaction.date)} • $categoryName',
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, // <-- CORREGIDO
+              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
             ),
           ),
           trailing: Text(

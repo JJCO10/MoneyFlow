@@ -2,9 +2,11 @@ import 'dart:ui';
 
 import 'package:get/get.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class SettingsController extends GetxController {
   final PreferencesService _prefs = Get.find();
+  final AppTranslationsController _translations = Get.find();
   
   var isDarkMode = false.obs;
   var selectedCurrency = '\$'.obs;
@@ -19,10 +21,10 @@ class SettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Cargar preferencias guardadas
     isDarkMode.value = _prefs.themeMode == 'dark';
     selectedCurrency.value = _prefs.currency;
     selectedLanguage.value = _prefs.language;
+    _translations.currentLanguage.value = _prefs.language;
   }
   
   void toggleTheme(bool value) {
@@ -37,9 +39,14 @@ class SettingsController extends GetxController {
   }
   
   void changeLanguage(String language) {
+    print('🌐 Cambiando idioma en settings: $language');
     selectedLanguage.value = language;
     _prefs.language = language;
-    // TODO: Implementar cambio de idioma con GetX
+    
+    final translationsController = Get.find<AppTranslationsController>();
+    translationsController.changeLanguage(language);
+    
     Get.updateLocale(Locale(language));
+    print('✅ Idioma actualizado a: $language');
   }
 }

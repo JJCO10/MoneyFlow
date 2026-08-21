@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/chart_controller.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class IncomeExpenseChart extends StatelessWidget {
   const IncomeExpenseChart({super.key});
@@ -54,9 +55,9 @@ class IncomeExpenseChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
-                    const titles = ['Ingresos', 'Gastos'];
+                    const titles = ['income', 'expense'];
                     return Text(
-                      titles[value.toInt()],
+                      titles[value.toInt()].t,
                       style: TextStyle(
                         fontSize: 12,
                         color: textColor,
