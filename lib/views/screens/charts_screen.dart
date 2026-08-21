@@ -5,6 +5,7 @@ import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/income_expense_chart.dart';
 import 'package:money_flow/views/widgets/category_pie_chart.dart';
 import 'package:money_flow/views/widgets/balance_line_chart.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class ChartsScreen extends StatelessWidget {
   const ChartsScreen({super.key});
@@ -20,7 +21,7 @@ class ChartsScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gráficos'),
+        title: Text('charts_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -35,8 +36,8 @@ class ChartsScreen extends StatelessWidget {
               final controller = Get.find<ChartController>();
               controller.loadChartData();
               Get.snackbar(
-                'Actualizado',
-                'Datos actualizados',
+                'info'.t,
+                'data_updated'.t,
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.green,
                 colorText: Colors.white,
@@ -51,13 +52,11 @@ class ChartsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Resumen
             _buildSummary(isDark),
             const SizedBox(height: 24),
             
-            // Gráfico de barras
             Text(
-              'Ingresos vs Gastos',
+              'income_expense_chart'.t,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -82,9 +81,8 @@ class ChartsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             
-            // Gráfico circular
             Text(
-              'Gastos por Categoría',
+              'category_pie_chart'.t,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -109,9 +107,8 @@ class ChartsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             
-            // Gráfico de líneas
             Text(
-              'Evolución del Balance Diario',
+              'balance_line_chart'.t,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -153,7 +150,7 @@ class ChartsScreen extends StatelessWidget {
         children: [
           Expanded(
             child: _buildSummaryCard(
-              'Ingresos',
+              'income'.t,
               '\$${income.toStringAsFixed(2)}',
               AppColors.secondary,
               Icons.arrow_upward,
@@ -163,7 +160,7 @@ class ChartsScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _buildSummaryCard(
-              'Gastos',
+              'expense'.t,
               '\$${expense.toStringAsFixed(2)}',
               AppColors.danger,
               Icons.arrow_downward,
@@ -173,7 +170,7 @@ class ChartsScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _buildSummaryCard(
-              'Balance',
+              'balance'.t,
               '\$${balance.toStringAsFixed(2)}',
               balance >= 0 ? AppColors.primary : AppColors.danger,
               Icons.account_balance,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/controllers/category_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/category_card.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -14,7 +15,7 @@ class CategoriesScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Categorías'),
+        title: Text('categories_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -40,7 +41,7 @@ class CategoriesScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No hay categorías',
+                  'no_categories'.t,
                   style: TextStyle(
                     color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                     fontSize: 16,
@@ -48,7 +49,7 @@ class CategoriesScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Presiona el botón + para agregar una',
+                  'add_category_message'.t,
                   style: TextStyle(
                     color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight,
                     fontSize: 14,
@@ -61,7 +62,7 @@ class CategoriesScreen extends StatelessWidget {
         
         return ListView.builder(
           padding: const EdgeInsets.all(16).copyWith(
-            bottom: 80, // Espacio para el FAB
+            bottom: 80,
           ),
           itemCount: controller.categories.length,
           itemBuilder: (context, index) {

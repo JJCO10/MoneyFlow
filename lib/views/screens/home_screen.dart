@@ -11,6 +11,7 @@ import 'package:money_flow/views/screens/settings_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/categories_screen.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,7 +23,7 @@ class HomeScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MoneyFlow'),
+        title: Text('app_name'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -66,11 +67,8 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Resumen de balances
                 _buildBalanceSummary(controller, isDark),
                 const SizedBox(height: 24),
-                
-                // Últimas transacciones
                 _buildRecentTransactions(controller, isDark),
               ],
             ),
@@ -83,8 +81,8 @@ class HomeScreen extends StatelessWidget {
           if (result == true) {
             await controller.loadData();
             Get.snackbar(
-              'Actualizado',
-              'Los datos se han actualizado',
+              'info'.t,
+              'data_updated'.t,
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: Colors.blue,
               colorText: Colors.white,
@@ -100,13 +98,12 @@ class HomeScreen extends StatelessWidget {
   
   Widget _buildBalanceSummary(HomeController controller, bool isDark) {
     final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     
     return Row(
       children: [
         Expanded(
           child: _buildSummaryCard(
-            'Ingresos',
+            'income'.t,
             '\$${controller.totalIncome.value.toStringAsFixed(2)}',
             AppColors.secondary,
             Icons.arrow_upward,
@@ -116,7 +113,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildSummaryCard(
-            'Gastos',
+            'expense'.t,
             '\$${controller.totalExpense.value.toStringAsFixed(2)}',
             AppColors.danger,
             Icons.arrow_downward,
@@ -126,7 +123,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildSummaryCard(
-            'Balance',
+            'balance'.t,
             '\$${controller.balance.value.toStringAsFixed(2)}',
             controller.balance.value >= 0 ? AppColors.primary : AppColors.danger,
             Icons.account_balance,
@@ -193,7 +190,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'No hay transacciones este mes',
+                'no_transactions_message'.t,
                 style: TextStyle(
                   color: textSecondary,
                   fontSize: 16,
@@ -201,7 +198,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Presiona el botón + para agregar una',
+                'add_transaction_message'.t,
                 style: TextStyle(
                   color: textLight,
                   fontSize: 14,
@@ -220,7 +217,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Últimos Movimientos',
+              'recent_transactions'.t,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -229,7 +226,7 @@ class HomeScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Get.to(() => const AllTransactionsScreen()),
-              child: const Text('Ver todas'),
+              child: Text('view_all'.t),
             ),
           ],
         ),

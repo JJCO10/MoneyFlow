@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/chart_controller.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class BalanceLineChart extends StatelessWidget {
   const BalanceLineChart({super.key});
@@ -25,7 +26,7 @@ class BalanceLineChart extends StatelessWidget {
           height: 200,
           child: Center(
             child: Text(
-              'Se necesitan al menos 2 días de datos',
+              'min_days_data'.t,
               style: TextStyle(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
               ),
@@ -36,7 +37,6 @@ class BalanceLineChart extends StatelessWidget {
       
       final data = controller.dailyBalances;
       
-      // Encontrar valores mínimos y máximos para el eje Y
       final values = data.map((item) => item['balance'] as double).toList();
       final maxValue = values.reduce((a, b) => a > b ? a : b);
       final minValue = values.reduce((a, b) => a < b ? a : b);
@@ -137,7 +137,7 @@ class BalanceLineChart extends StatelessWidget {
                       radius: 4,
                       color: AppColors.primary,
                       strokeWidth: 2,
-                      strokeColor: isDark ? Colors.white : Colors.white,
+                      strokeColor: Colors.white,
                     );
                   },
                 ),

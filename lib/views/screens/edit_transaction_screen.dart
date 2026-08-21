@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:money_flow/controllers/edit_transaction_controller.dart';
 import 'package:money_flow/models/transaction_model.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class EditTransactionScreen extends StatelessWidget {
   final Transaction transaction;
@@ -23,7 +24,7 @@ class EditTransactionScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Transacción'),
+        title: Text('edit_transaction_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -34,12 +35,11 @@ class EditTransactionScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              // TODO: Eliminar transacción
-              Get.snackbar('Info', 'Eliminar en desarrollo');
+              Get.snackbar('info'.t, 'delete'.t);
             },
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: Colors.white),
+            child: Text(
+              'delete'.t,
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -54,27 +54,16 @@ class EditTransactionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Selector de tipo (Ingreso/Gasto)
               _buildTypeSelector(controller, isDark),
               const SizedBox(height: 24),
-              
-              // Campo de monto
               _buildAmountField(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Campo de descripción
               _buildDescriptionField(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Selector de categoría
               _buildCategorySelector(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Selector de fecha
               _buildDatePicker(controller, isDark),
               const SizedBox(height: 32),
-              
-              // Botón actualizar
               _buildUpdateButton(controller),
             ],
           ),
@@ -88,7 +77,7 @@ class EditTransactionScreen extends StatelessWidget {
       children: [
         Expanded(
           child: _buildTypeCard(
-            'Gasto',
+            'expense_type'.t,
             'expense',
             Icons.arrow_downward,
             AppColors.danger,
@@ -100,7 +89,7 @@ class EditTransactionScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildTypeCard(
-            'Ingreso',
+            'income_type'.t,
             'income',
             Icons.arrow_upward,
             AppColors.secondary,
@@ -167,7 +156,7 @@ class EditTransactionScreen extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: TextStyle(color: textColor),
       decoration: InputDecoration(
-        labelText: 'Monto',
+        labelText: 'amount'.t,
         labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         prefixIcon: Icon(Icons.attach_money, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         prefixText: '\$ ',
@@ -190,7 +179,7 @@ class EditTransactionScreen extends StatelessWidget {
       controller: controller.descriptionController,
       style: TextStyle(color: textColor),
       decoration: InputDecoration(
-        labelText: 'Descripción',
+        labelText: 'description'.t,
         labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         hintText: 'Ej: Almuerzo, Supermercado, etc.',
         hintStyle: TextStyle(color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
@@ -218,7 +207,7 @@ class EditTransactionScreen extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              'No hay categorías disponibles',
+              'no_categories'.t,
               style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
             ),
           ),
@@ -230,7 +219,7 @@ class EditTransactionScreen extends StatelessWidget {
         dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
         style: TextStyle(color: textColor),
         decoration: InputDecoration(
-          labelText: 'Categoría',
+          labelText: 'category'.t,
           labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
           prefixIcon: Icon(Icons.category, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
           border: OutlineInputBorder(
@@ -273,7 +262,7 @@ class EditTransactionScreen extends StatelessWidget {
     return Obx(() => ListTile(
       leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
       title: Text(
-        'Fecha',
+        'date'.t,
         style: TextStyle(color: textColor),
       ),
       subtitle: Text(
@@ -331,9 +320,9 @@ class EditTransactionScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : const Text(
-                'Actualizar Transacción',
-                style: TextStyle(
+            : Text(
+                'update'.t,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

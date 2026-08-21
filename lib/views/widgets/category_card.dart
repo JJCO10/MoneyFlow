@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class CategoryCard extends StatelessWidget {
   final Category category;
@@ -17,7 +18,7 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = category.type == 'income';
-    final typeLabel = isIncome ? 'Ingreso' : 'Gasto';
+    final typeLabel = isIncome ? 'income_type'.t : 'expense_type'.t;
     final typeColor = isIncome ? AppColors.secondary : AppColors.danger;
     final isDefault = category.isDefault;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -68,7 +69,7 @@ class CategoryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Por defecto',
+                  'default'.t,
                   style: TextStyle(
                     fontSize: 10,
                     color: textSecondary,

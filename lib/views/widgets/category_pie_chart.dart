@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/chart_controller.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class CategoryPieChart extends StatelessWidget {
   const CategoryPieChart({super.key});
@@ -26,7 +27,7 @@ class CategoryPieChart extends StatelessWidget {
           height: 250,
           child: Center(
             child: Text(
-              'No hay gastos para mostrar',
+              'no_expense_data'.t,
               style: TextStyle(color: textColor),
             ),
           ),
@@ -80,7 +81,6 @@ class CategoryPieChart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Leyenda
           Wrap(
             spacing: 8,
             runSpacing: 4,
