@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
+import 'package:money_flow/services/csv_export_service.dart';
 import 'package:money_flow/services/export_service.dart';
+import 'package:money_flow/services/pdf_export_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
 import 'package:money_flow/services/budget_service.dart';
@@ -21,7 +23,10 @@ void main() async {
     Get.put(CategoryService());
     Get.put(TransactionService());
     Get.put(BudgetService()); // <-- AGREGADO
+    Get.put(CsvExportService());
+    Get.put(PdfExportService());
     Get.put(ExportService());
+
     
     print('✅ Servicios inicializados');
     
