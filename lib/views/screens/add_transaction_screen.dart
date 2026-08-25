@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/controllers/transaction_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class AddTransactionScreen extends StatelessWidget {
   AddTransactionScreen({super.key});
@@ -17,7 +18,7 @@ class AddTransactionScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nueva Transacción'),
+        title: Text('add_transaction_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -36,27 +37,16 @@ class AddTransactionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Selector de tipo (Ingreso/Gasto)
               _buildTypeSelector(controller, isDark),
               const SizedBox(height: 24),
-              
-              // Campo de monto
               _buildAmountField(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Campo de descripción
               _buildDescriptionField(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Selector de categoría
               _buildCategorySelector(controller, isDark, fillColor),
               const SizedBox(height: 16),
-              
-              // Selector de fecha
               _buildDatePicker(controller, isDark),
               const SizedBox(height: 32),
-              
-              // Botón guardar
               _buildSaveButton(controller),
             ],
           ),
@@ -66,13 +56,11 @@ class AddTransactionScreen extends StatelessWidget {
   }
   
   Widget _buildTypeSelector(TransactionController controller, bool isDark) {
-    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    
     return Obx(() => Row(
       children: [
         Expanded(
           child: _buildTypeCard(
-            'Gasto',
+            'expense_type'.t,
             'expense',
             Icons.arrow_downward,
             AppColors.danger,
@@ -84,7 +72,7 @@ class AddTransactionScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildTypeCard(
-            'Ingreso',
+            'income_type'.t,
             'income',
             Icons.arrow_upward,
             AppColors.secondary,
@@ -152,7 +140,7 @@ class AddTransactionScreen extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: TextStyle(color: textColor),
       decoration: InputDecoration(
-        labelText: 'Monto',
+        labelText: 'amount'.t,
         labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         prefixIcon: Icon(Icons.attach_money, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         prefixText: '\$ ',
@@ -175,7 +163,7 @@ class AddTransactionScreen extends StatelessWidget {
       controller: controller.descriptionController,
       style: TextStyle(color: textColor),
       decoration: InputDecoration(
-        labelText: 'Descripción',
+        labelText: 'description'.t,
         labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         hintText: 'Ej: Almuerzo, Supermercado, etc.',
         hintStyle: TextStyle(color: isDark ? AppColors.darkTextLight : AppColors.lightTextLight),
@@ -203,7 +191,7 @@ class AddTransactionScreen extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              'No hay categorías disponibles',
+              'no_categories'.t,
               style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
             ),
           ),
@@ -215,7 +203,7 @@ class AddTransactionScreen extends StatelessWidget {
         dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
         style: TextStyle(color: textColor),
         decoration: InputDecoration(
-          labelText: 'Categoría',
+          labelText: 'category'.t,
           labelStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
           prefixIcon: Icon(Icons.category, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
           border: OutlineInputBorder(
@@ -258,7 +246,7 @@ class AddTransactionScreen extends StatelessWidget {
     return Obx(() => ListTile(
       leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
       title: Text(
-        'Fecha',
+        'date'.t,
         style: TextStyle(color: textColor),
       ),
       subtitle: Text(
@@ -316,9 +304,9 @@ class AddTransactionScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : const Text(
-                'Guardar Transacción',
-                style: TextStyle(
+            : Text(
+                'save'.t,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

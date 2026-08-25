@@ -11,6 +11,7 @@ import 'package:money_flow/views/screens/settings_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/categories_screen.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,93 +21,190 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.put(HomeController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
+    final selectedIndex = 0.obs;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MoneyFlow'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        title: null,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            onPressed: () => Get.to(() => const BudgetsScreen()),
+        actions: [],
+        toolbarHeight: 0,
+      ),
+      body: Stack(
+        children: [
+          // ==================== CONTENIDO PRINCIPAL ====================
+          Obx(() {
+            if (controller.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            return RefreshIndicator(
+              onRefresh: controller.loadData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16).copyWith(
+                  bottom: 80,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.attach_money,
+                          color: AppColors.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'app_name'.t,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBalanceSummary(controller, isDark),
+                    const SizedBox(height: 24),
+                    _buildRecentTransactions(controller, isDark),
+                  ],
+                ),
+              ),
+            );
+          }),
+          
+          // ==================== BOTÓN DE SETTINGS (ARRIBA DERECHA) ====================
+          Positioned(
+            top: 4,
+            right: 12,
+            child: SafeArea(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.settings),
+                  color: AppColors.primary,
+                  onPressed: () => Get.to(() => const SettingsScreen()),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.list_alt),
-            onPressed: () => Get.to(() => const AllTransactionsScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () => Get.to(() => const CalendarScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.show_chart),
-            onPressed: () => Get.to(() => const ChartsScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.category),
-            onPressed: () => Get.to(() => const CategoriesScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Get.to(() => const SettingsScreen()),
+          
+          // ==================== BOTÓN DE AGREGAR (DERECHA) ====================
+          Positioned(
+            bottom: 20,  // 🔥 Ajusta este valor (70-90)
+            right: 24,   // 🔥 Posición desde la derecha
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                onPressed: () async {
+                  final result = await Get.to(() => AddTransactionScreen());
+                  if (result == true) {
+                    await controller.loadData();
+                    Get.snackbar(
+                      'info'.t,
+                      'data_updated'.t,
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.blue,
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 1),
+                    );
+                  }
+                },
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.add, color: Colors.white),
+                elevation: 4,
+              ),
+            ),
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        return RefreshIndicator(
-          onRefresh: controller.loadData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Resumen de balances
-                _buildBalanceSummary(controller, isDark),
-                const SizedBox(height: 24),
-                
-                // Últimas transacciones
-                _buildRecentTransactions(controller, isDark),
-              ],
-            ),
-          ),
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Get.to(() => AddTransactionScreen());
-          if (result == true) {
-            await controller.loadData();
-            Get.snackbar(
-              'Actualizado',
-              'Los datos se han actualizado',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.blue,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 1),
-            );
+      // ==================== BOTTOM NAVIGATION BAR ====================
+      bottomNavigationBar: Obx(() => BottomNavigationBar(
+        currentIndex: selectedIndex.value,
+        onTap: (index) {
+          selectedIndex.value = index;
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              Get.to(() => const CalendarScreen());
+              break;
+            case 2:
+              Get.to(() => const ChartsScreen());
+              break;
+            case 3:
+              Get.to(() => const CategoriesScreen());
+              break;
+            case 4:
+              Get.to(() => const BudgetsScreen());
+              break;
           }
         },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: 'home_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.calendar_today),
+            label: 'calendar_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.show_chart),
+            label: 'charts_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.category),
+            label: 'categories_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.account_balance_wallet),
+            label: 'budgets_title'.t,
+          ),
+        ],
+      )),
     );
   }
   
   Widget _buildBalanceSummary(HomeController controller, bool isDark) {
     final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     
     return Row(
       children: [
         Expanded(
           child: _buildSummaryCard(
-            'Ingresos',
+            'income'.t,
             '\$${controller.totalIncome.value.toStringAsFixed(2)}',
             AppColors.secondary,
             Icons.arrow_upward,
@@ -116,7 +214,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildSummaryCard(
-            'Gastos',
+            'expense'.t,
             '\$${controller.totalExpense.value.toStringAsFixed(2)}',
             AppColors.danger,
             Icons.arrow_downward,
@@ -126,7 +224,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildSummaryCard(
-            'Balance',
+            'balance'.t,
             '\$${controller.balance.value.toStringAsFixed(2)}',
             controller.balance.value >= 0 ? AppColors.primary : AppColors.danger,
             Icons.account_balance,
@@ -193,7 +291,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'No hay transacciones este mes',
+                'no_transactions_message'.t,
                 style: TextStyle(
                   color: textSecondary,
                   fontSize: 16,
@@ -201,7 +299,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Presiona el botón + para agregar una',
+                'add_transaction_message'.t,
                 style: TextStyle(
                   color: textLight,
                   fontSize: 14,
@@ -220,7 +318,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Últimos Movimientos',
+              'recent_transactions'.t,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -229,7 +327,7 @@ class HomeScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Get.to(() => const AllTransactionsScreen()),
-              child: const Text('Ver todas'),
+              child: Text('view_all'.t),
             ),
           ],
         ),

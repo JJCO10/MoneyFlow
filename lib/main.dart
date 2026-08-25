@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
-import 'package:money_flow/services/csv_export_service.dart';
-import 'package:money_flow/services/export_service.dart';
-import 'package:money_flow/services/pdf_export_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
 import 'package:money_flow/services/budget_service.dart';
+import 'package:money_flow/services/csv_export_service.dart';
+import 'package:money_flow/services/pdf_export_service.dart';
+import 'package:money_flow/services/export_service.dart';
 import 'package:money_flow/views/screens/home_screen.dart';
 import 'package:money_flow/theme/app_theme.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,17 +17,22 @@ void main() async {
   try {
     print('🔄 Iniciando servicios...');
     
-    // Inicializar preferencias primero
+    // 1. Preferencias primero
     await Get.putAsync(() => PreferencesService().init());
     
-    // Inicializar servicios
+    // 2. Controlador de traducciones
+    Get.put(AppTranslationsController());
+    print('✅ AppTranslationsController inicializado');
+    
+    // 3. Servicios de base de datos
     Get.put(CategoryService());
     Get.put(TransactionService());
-    Get.put(BudgetService()); // <-- AGREGADO
+    Get.put(BudgetService());
+    
+    // 4. Servicios de exportación
     Get.put(CsvExportService());
     Get.put(PdfExportService());
     Get.put(ExportService());
-
     
     print('✅ Servicios inicializados');
     
@@ -50,7 +56,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prefs = Get.find<PreferencesService>();
+    final translationsController = Get.find<AppTranslationsController>();
     final isDarkMode = prefs.themeMode == 'dark';
+    
+    // Cargar idioma guardado
+    translationsController.currentLanguage.value = prefs.language;
     
     return GetMaterialApp(
       title: 'MoneyFlow',
@@ -61,6 +71,11 @@ class MyApp extends StatelessWidget {
       home: const HomeScreen(),
       locale: Locale(prefs.language),
       fallbackLocale: const Locale('es'),
+      translations: AppTranslations(),
+      // Usar el controlador para traducciones dinámicas
+      initialBinding: BindingsBuilder(() {
+        Get.put(AppTranslationsController());
+      }),
     );
   }
 }

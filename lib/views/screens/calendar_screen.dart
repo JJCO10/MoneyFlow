@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:money_flow/controllers/calendar_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -17,7 +18,7 @@ class CalendarScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendario'),
+        title: Text('calendar_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -42,10 +43,7 @@ class CalendarScreen extends StatelessWidget {
         
         return Column(
           children: [
-            // Calendario
             _buildCalendar(controller, isDark),
-            
-            // Transacciones del día seleccionado
             _buildDayTransactions(controller, isDark),
           ],
         );
@@ -177,7 +175,7 @@ class CalendarScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Transacciones del día',
+                  'transactions_day'.t,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -219,7 +217,7 @@ class CalendarScreen extends StatelessWidget {
       children: [
         Expanded(
           child: _buildSummaryChip(
-            'Ingresos',
+            'income'.t,
             '\$${totalIncome.toStringAsFixed(2)}',
             AppColors.secondary,
             isDark,
@@ -228,7 +226,7 @@ class CalendarScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildSummaryChip(
-            'Gastos',
+            'expense'.t,
             '\$${totalExpense.toStringAsFixed(2)}',
             AppColors.danger,
             isDark,
@@ -237,7 +235,7 @@ class CalendarScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildSummaryChip(
-            'Balance',
+            'balance'.t,
             '\$${balance.toStringAsFixed(2)}',
             balance >= 0 ? AppColors.primary : AppColors.danger,
             isDark,
@@ -292,7 +290,7 @@ class CalendarScreen extends StatelessWidget {
             Icon(Icons.receipt_long, size: 48, color: iconColor),
             const SizedBox(height: 8),
             Text(
-              'No hay transacciones este día',
+              'no_transactions_day'.t,
               style: TextStyle(
                 color: textSecondary,
                 fontSize: 14,
@@ -322,8 +320,7 @@ class CalendarScreen extends StatelessWidget {
               }
             },
             onDelete: () {
-              // TODO: Eliminar transacción desde el calendario
-              Get.snackbar('Info', 'Eliminar en desarrollo');
+              Get.snackbar('info'.t, 'delete'.t);
             },
           ),
         );

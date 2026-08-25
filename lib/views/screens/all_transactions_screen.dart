@@ -4,6 +4,7 @@ import 'package:money_flow/controllers/all_transactions_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
 import 'package:money_flow/views/screens/edit_transaction_screen.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class AllTransactionsScreen extends StatelessWidget {
   const AllTransactionsScreen({super.key});
@@ -15,7 +16,7 @@ class AllTransactionsScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Todas las Transacciones'),
+        title: Text('transactions_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -41,13 +42,8 @@ class AllTransactionsScreen extends StatelessWidget {
         
         return Column(
           children: [
-            // Buscador
             _buildSearchBar(controller, isDark),
-            
-            // Resumen
             _buildSummary(controller, isDark),
-            
-            // Lista de transacciones
             Expanded(
               child: _buildTransactionList(controller),
             ),
@@ -68,7 +64,7 @@ class AllTransactionsScreen extends StatelessWidget {
           color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         ),
         decoration: InputDecoration(
-          hintText: 'Buscar transacciones...',
+          hintText: 'search'.t,
           hintStyle: TextStyle(color: textColor),
           prefixIcon: Icon(Icons.search, color: textColor),
           suffixIcon: Obx(() {
@@ -106,7 +102,7 @@ class AllTransactionsScreen extends StatelessWidget {
         children: [
           Expanded(
             child: _buildSummaryChip(
-              'Ingresos',
+              'income'.t,
               '\$${income.toStringAsFixed(2)}',
               AppColors.secondary,
               isDark,
@@ -115,7 +111,7 @@ class AllTransactionsScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _buildSummaryChip(
-              'Gastos',
+              'expense'.t,
               '\$${expense.toStringAsFixed(2)}',
               AppColors.danger,
               isDark,
@@ -124,7 +120,7 @@ class AllTransactionsScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _buildSummaryChip(
-              'Balance',
+              'balance'.t,
               '\$${balance.toStringAsFixed(2)}',
               balance >= 0 ? AppColors.primary : AppColors.danger,
               isDark,
@@ -180,7 +176,7 @@ class AllTransactionsScreen extends StatelessWidget {
             Icon(Icons.receipt_long, size: 64, color: iconColor),
             const SizedBox(height: 16),
             Text(
-              'No hay transacciones',
+              'no_transactions'.t,
               style: TextStyle(
                 color: textColor,
                 fontSize: 16,
@@ -191,7 +187,7 @@ class AllTransactionsScreen extends StatelessWidget {
                 controller.selectedCategoryId.value != 0)
               TextButton(
                 onPressed: () => controller.clearFilters(),
-                child: const Text('Limpiar filtros'),
+                child: Text('clear_filters'.t),
               ),
           ],
         ),
@@ -225,7 +221,6 @@ class AllTransactionsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final chipBgColor = isDark ? Colors.grey[700] : Colors.grey[200];
     
     showModalBottomSheet(
       context: context,
@@ -247,7 +242,7 @@ class AllTransactionsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Filtros',
+                    'filter'.t,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -258,7 +253,7 @@ class AllTransactionsScreen extends StatelessWidget {
                   
                   // Filtro por tipo
                   Text(
-                    'Tipo',
+                    'type'.t,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: textPrimary,
@@ -268,7 +263,7 @@ class AllTransactionsScreen extends StatelessWidget {
                   Obx(() => Row(
                     children: [
                       _buildFilterChip(
-                        'Todos',
+                        'all_types'.t,
                         'all',
                         controller.selectedType.value,
                         () => controller.filterByType('all'),
@@ -276,7 +271,7 @@ class AllTransactionsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       _buildFilterChip(
-                        'Ingresos',
+                        'income_type'.t,
                         'income',
                         controller.selectedType.value,
                         () => controller.filterByType('income'),
@@ -284,7 +279,7 @@ class AllTransactionsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       _buildFilterChip(
-                        'Gastos',
+                        'expense_type'.t,
                         'expense',
                         controller.selectedType.value,
                         () => controller.filterByType('expense'),
@@ -296,7 +291,7 @@ class AllTransactionsScreen extends StatelessWidget {
                   
                   // Filtro por categoría
                   Text(
-                    'Categoría',
+                    'category'.t,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: textPrimary,
@@ -308,7 +303,7 @@ class AllTransactionsScreen extends StatelessWidget {
                       if (controller.filteredCategories.isEmpty) {
                         return Center(
                           child: Text(
-                            'No hay categorías para este tipo',
+                            'no_categories'.t,
                             style: TextStyle(color: textSecondary),
                           ),
                         );
@@ -321,7 +316,7 @@ class AllTransactionsScreen extends StatelessWidget {
                           runSpacing: 8,
                           children: [
                             _buildCategoryChip(
-                              'Todas',
+                              'all_types'.t,
                               0,
                               controller.selectedCategoryId.value,
                               () => controller.filterByCategory(0),
@@ -355,7 +350,7 @@ class AllTransactionsScreen extends StatelessWidget {
                         controller.clearFilters();
                         Navigator.pop(context);
                       },
-                      child: const Text('Limpiar filtros'),
+                      child: Text('clear_filters'.t),
                     ),
                   ),
                   const SizedBox(height: 8),

@@ -4,6 +4,7 @@ import 'package:money_flow/controllers/budget_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:money_flow/models/budget_model.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class BudgetsScreen extends StatelessWidget {
   const BudgetsScreen({super.key});
@@ -18,7 +19,7 @@ class BudgetsScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Presupuestos'),
+        title: Text('budgets_title'.t),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -50,7 +51,7 @@ class BudgetsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No hay presupuestos',
+                  'no_budgets'.t,
                   style: TextStyle(
                     color: textSecondary,
                     fontSize: 16,
@@ -58,7 +59,7 @@ class BudgetsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Presiona el botón + para crear uno',
+                  'add_budget_message'.t,
                   style: TextStyle(
                     color: textLight,
                     fontSize: 14,
@@ -121,7 +122,7 @@ class BudgetsScreen extends StatelessWidget {
                                 ),
                                 if (budget != null)
                                   Text(
-                                    'Límite: \$${budget.limit.toStringAsFixed(2)} • ${budget.period == 'monthly' ? 'Mensual' : 'Semanal'}',
+                                    '${'limit'.t}: \$${budget.limit.toStringAsFixed(2)} • ${budget.period == 'monthly' ? 'monthly'.t : 'weekly'.t}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: textSecondary,
@@ -137,7 +138,7 @@ class BudgetsScreen extends StatelessWidget {
                                 Get.dialog(
                                   AlertDialog(
                                     title: Text(
-                                      'Eliminar presupuesto',
+                                      'delete'.t,
                                       style: TextStyle(color: textPrimary),
                                     ),
                                     content: Text(
@@ -148,7 +149,7 @@ class BudgetsScreen extends StatelessWidget {
                                       TextButton(
                                         onPressed: () => Get.back(),
                                         child: Text(
-                                          'Cancelar',
+                                          'cancel'.t,
                                           style: TextStyle(color: textSecondary),
                                         ),
                                       ),
@@ -157,9 +158,9 @@ class BudgetsScreen extends StatelessWidget {
                                           controller.deleteBudget(budget.id!);
                                           Get.back();
                                         },
-                                        child: const Text(
-                                          'Eliminar',
-                                          style: TextStyle(color: AppColors.danger),
+                                        child: Text(
+                                          'delete'.t,
+                                          style: const TextStyle(color: AppColors.danger),
                                         ),
                                       ),
                                     ],
@@ -181,7 +182,7 @@ class BudgetsScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Gastado: \$${spent.toStringAsFixed(2)}',
+                                  '${'spent'.t}: \$${spent.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: textSecondary,
@@ -189,7 +190,7 @@ class BudgetsScreen extends StatelessWidget {
                                 ),
                                 Text(
                                   isOverBudget 
-                                      ? '¡Excedido!' 
+                                      ? 'over_budget'.t
                                       : '${progress.toStringAsFixed(0)}%',
                                   style: TextStyle(
                                     fontSize: 12,
@@ -219,7 +220,7 @@ class BudgetsScreen extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Restante: \$${remaining.toStringAsFixed(2)}',
+                                  '${'remaining'.t}: \$${remaining.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: textLight,
@@ -230,7 +231,7 @@ class BudgetsScreen extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Excedido por: \$${(-remaining).toStringAsFixed(2)}',
+                                  '${'exceeded_by'.t}: \$${(-remaining).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.danger,
@@ -264,7 +265,7 @@ class BudgetsScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Establecer presupuesto',
+                                  'set_budget'.t,
                                   style: TextStyle(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w500,
