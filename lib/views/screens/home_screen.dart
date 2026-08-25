@@ -21,78 +21,179 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.put(HomeController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
+    final selectedIndex = 0.obs;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text('app_name'.t),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        title: null,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            onPressed: () => Get.to(() => const BudgetsScreen()),
+        actions: [],
+        toolbarHeight: 0,
+      ),
+      body: Stack(
+        children: [
+          // ==================== CONTENIDO PRINCIPAL ====================
+          Obx(() {
+            if (controller.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            return RefreshIndicator(
+              onRefresh: controller.loadData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16).copyWith(
+                  bottom: 80,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.attach_money,
+                          color: AppColors.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'app_name'.t,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBalanceSummary(controller, isDark),
+                    const SizedBox(height: 24),
+                    _buildRecentTransactions(controller, isDark),
+                  ],
+                ),
+              ),
+            );
+          }),
+          
+          // ==================== BOTÓN DE SETTINGS (ARRIBA DERECHA) ====================
+          Positioned(
+            top: 4,
+            right: 12,
+            child: SafeArea(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.settings),
+                  color: AppColors.primary,
+                  onPressed: () => Get.to(() => const SettingsScreen()),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.list_alt),
-            onPressed: () => Get.to(() => const AllTransactionsScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () => Get.to(() => const CalendarScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.show_chart),
-            onPressed: () => Get.to(() => const ChartsScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.category),
-            onPressed: () => Get.to(() => const CategoriesScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Get.to(() => const SettingsScreen()),
+          
+          // ==================== BOTÓN DE AGREGAR (DERECHA) ====================
+          Positioned(
+            bottom: 20,  // 🔥 Ajusta este valor (70-90)
+            right: 24,   // 🔥 Posición desde la derecha
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                onPressed: () async {
+                  final result = await Get.to(() => AddTransactionScreen());
+                  if (result == true) {
+                    await controller.loadData();
+                    Get.snackbar(
+                      'info'.t,
+                      'data_updated'.t,
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.blue,
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 1),
+                    );
+                  }
+                },
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.add, color: Colors.white),
+                elevation: 4,
+              ),
+            ),
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        return RefreshIndicator(
-          onRefresh: controller.loadData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildBalanceSummary(controller, isDark),
-                const SizedBox(height: 24),
-                _buildRecentTransactions(controller, isDark),
-              ],
-            ),
-          ),
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Get.to(() => AddTransactionScreen());
-          if (result == true) {
-            await controller.loadData();
-            Get.snackbar(
-              'info'.t,
-              'data_updated'.t,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.blue,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 1),
-            );
+      // ==================== BOTTOM NAVIGATION BAR ====================
+      bottomNavigationBar: Obx(() => BottomNavigationBar(
+        currentIndex: selectedIndex.value,
+        onTap: (index) {
+          selectedIndex.value = index;
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              Get.to(() => const CalendarScreen());
+              break;
+            case 2:
+              Get.to(() => const ChartsScreen());
+              break;
+            case 3:
+              Get.to(() => const CategoriesScreen());
+              break;
+            case 4:
+              Get.to(() => const BudgetsScreen());
+              break;
           }
         },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: 'home_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.calendar_today),
+            label: 'calendar_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.show_chart),
+            label: 'charts_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.category),
+            label: 'categories_title'.t,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.account_balance_wallet),
+            label: 'budgets_title'.t,
+          ),
+        ],
+      )),
     );
   }
   
