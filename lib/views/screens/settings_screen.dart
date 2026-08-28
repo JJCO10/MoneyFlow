@@ -37,7 +37,7 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Tema
+            // ==================== APARIENCIA ====================
             _buildSection(
               title: 'appearance'.t,
               cardBg: cardBg,
@@ -61,42 +61,41 @@ class SettingsScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Moneda
-            _buildSection(
-              title: 'currency'.t,
-              cardBg: cardBg,
-              shadowColor: shadowColor,
-              children: [
-                Obx(() => DropdownButtonFormField<String>(
-                  value: controller.selectedCurrency.value,
-                  dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
-                  style: TextStyle(color: textPrimary),
-                  decoration: InputDecoration(
-                    labelText: 'default_currency'.t,
-                    labelStyle: TextStyle(color: textSecondary),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: controller.currencies.map((currency) {
-                    return DropdownMenuItem<String>(
-                      value: currency,
-                      child: Text(
-                        currency,
-                        style: TextStyle(color: textPrimary),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.changeCurrency(value);
-                    }
-                  },
-                )),
-              ],
-            ),
+            // ==================== MONEDA (OCULTA) ====================
+            // Comentada mientras no esté implementada
+            // _buildSection(
+            //   title: 'currency'.t,
+            //   cardBg: cardBg,
+            //   shadowColor: shadowColor,
+            //   children: [
+            //     Obx(() => DropdownButtonFormField<String>(
+            //       value: controller.selectedCurrency.value,
+            //       dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
+            //       style: TextStyle(color: textPrimary),
+            //       decoration: InputDecoration(
+            //         labelText: 'default_currency'.t,
+            //         labelStyle: TextStyle(color: textSecondary),
+            //         border: const OutlineInputBorder(),
+            //       ),
+            //       items: controller.currencies.map((currency) {
+            //         return DropdownMenuItem<String>(
+            //           value: currency,
+            //           child: Text(
+            //             currency,
+            //             style: TextStyle(color: textPrimary),
+            //           ),
+            //         );
+            //       }).toList(),
+            //       onChanged: (value) {
+            //         if (value != null) {
+            //           controller.changeCurrency(value);
+            //         }
+            //       },
+            //     )),
+            //   ],
+            // ),
             
-            const SizedBox(height: 16),
-            
-            // Idioma
+            // ==================== IDIOMA ====================
             _buildSection(
               title: 'language'.t,
               cardBg: cardBg,
@@ -131,7 +130,55 @@ class SettingsScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Exportar datos
+            // ==================== NOTIFICACIONES ====================
+            _buildSection(
+              title: 'Notificaciones',
+              cardBg: cardBg,
+              shadowColor: shadowColor,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.notifications, color: AppColors.primary),
+                  title: Text(
+                    'Recordatorios de presupuestos',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Recibir alertas cuando te acerques al límite',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Obx(() => Switch(
+                    value: controller.budgetAlertsEnabled.value,
+                    onChanged: (value) {
+                      controller.toggleBudgetAlerts(value);
+                    },
+                    activeColor: AppColors.primary,
+                  )),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.alarm, color: AppColors.primary),
+                  title: Text(
+                    'Resumen diario',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Recibir un resumen de tus gastos cada día a las 9:00 PM',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Obx(() => Switch(
+                    value: controller.dailySummaryEnabled.value,
+                    onChanged: (value) {
+                      controller.toggleDailySummary(value);
+                    },
+                    activeColor: AppColors.primary,
+                  )),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // ==================== EXPORTAR DATOS ====================
             _buildSection(
               title: 'export_title'.t,
               cardBg: cardBg,
@@ -204,7 +251,7 @@ class SettingsScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Acerca de
+            // ==================== ACERCA DE ====================
             _buildSection(
               title: 'about'.t,
               cardBg: cardBg,

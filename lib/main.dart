@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
+import 'package:money_flow/services/notification_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
 import 'package:money_flow/services/budget_service.dart';
@@ -33,6 +34,9 @@ void main() async {
     Get.put(CsvExportService());
     Get.put(PdfExportService());
     Get.put(ExportService());
+
+    // 🔥 5. Servicio de notificaciones
+    await Get.putAsync(() => NotificationService().init());
     
     print('✅ Servicios inicializados');
     
@@ -40,6 +44,17 @@ void main() async {
     final categoryService = Get.find<CategoryService>();
     await categoryService.loadDefaultCategories();
     print('✅ Categorías por defecto cargadas');
+
+    // 🔥 Solicitar permisos de notificación
+    final notificationService = Get.find<NotificationService>();
+    final hasPermission = await notificationService.requestPermissions();
+    print('🔔 Permisos de notificación: $hasPermission');
+
+    // 🔥 Programar resumen diario si tiene permiso
+    if (hasPermission) {
+      await notificationService.scheduleDailySummaryIfEnabled();
+      print('📊 Resumen diario programado');
+    }
     
     runApp(const MyApp());
     

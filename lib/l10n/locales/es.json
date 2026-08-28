@@ -106,5 +106,11 @@
   "default": "Por defecto",
   "set_budget": "Establecer presupuesto",
   
-  "no_category": "Sin categoría"
+  "no_category": "Sin categoría",
+
+  "notifications_title": "Notificaciones",
+  "budget_reminders": "Recordatorios de presupuestos",
+  "budget_reminders_subtitle": "Recibir alertas cuando te acerques al límite",
+  "daily_summary": "Resumen diario",
+  "daily_summary_subtitle": "Recibir un resumen de tus gastos cada día"
 }
