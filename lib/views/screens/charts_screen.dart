@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/chart_controller.dart';
+import 'package:money_flow/models/time_range.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/widgets/income_expense_chart.dart';
 import 'package:money_flow/views/widgets/category_pie_chart.dart';
-import 'package:money_flow/views/widgets/balance_line_chart.dart';
+import 'package:money_flow/views/widgets/monthly_evolution_chart.dart';
+import 'package:money_flow/views/widgets/annual_comparison_chart.dart';
 import 'package:money_flow/l10n/translations.dart';
 
 class ChartsScreen extends StatelessWidget {
@@ -12,7 +14,7 @@ class ChartsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ChartController());
+    final controller = Get.put(ChartController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
@@ -22,117 +24,185 @@ class ChartsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('charts_title'.t),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              final controller = Get.find<ChartController>();
-              controller.loadChartData();
-              Get.snackbar(
-                'info'.t,
-                'data_updated'.t,
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-                duration: const Duration(seconds: 1),
-              );
-            },
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSummary(isDark),
-            const SizedBox(height: 24),
-            
-            Text(
-              'income_expense_chart'.t,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textPrimary,
-              ),
+      body: Obx(() {
+        // 🔥 MOSTRAR INDICADOR DE CARGA SIEMPRE QUE isLoading SEA true
+        if (controller.isLoading.value) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Cargando gráficos...'),
+              ],
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    spreadRadius: 1,
-                    blurRadius: 6,
-                  ),
-                ],
+          );
+        }
+        
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTimeRangeSelector(controller, isDark),
+              const SizedBox(height: 16),
+              _buildSummary(isDark),
+              const SizedBox(height: 24),
+              
+              Text(
+                'income_expense_chart'.t,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
               ),
-              child: const IncomeExpenseChart(),
-            ),
-            const SizedBox(height: 24),
-            
-            Text(
-              'category_pie_chart'.t,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textPrimary,
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor,
+                      spreadRadius: 1,
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const IncomeExpenseChart(),
               ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    spreadRadius: 1,
-                    blurRadius: 6,
-                  ),
-                ],
+              const SizedBox(height: 24),
+              
+              Text(
+                'category_pie_chart'.t,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
               ),
-              child: const CategoryPieChart(),
-            ),
-            const SizedBox(height: 24),
-            
-            Text(
-              'balance_line_chart'.t,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textPrimary,
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor,
+                      spreadRadius: 1,
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const CategoryPieChart(),
               ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    spreadRadius: 1,
-                    blurRadius: 6,
-                  ),
-                ],
+              const SizedBox(height: 24),
+              
+              Text(
+                'monthly_evolution'.t,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
               ),
-              child: const BalanceLineChart(),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor,
+                      spreadRadius: 1,
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const MonthlyEvolutionChart(),
+              ),
+              const SizedBox(height: 24),
+              
+              Text(
+                'annual_comparison'.t,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor,
+                      spreadRadius: 1,
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const AnnualComparisonChart(),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+  
+  Widget _buildTimeRangeSelector(ChartController controller, bool isDark) {
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final bgColor = isDark ? AppColors.darkSurface : Colors.grey[100];
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'time_range'.t,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
             ),
-          ],
-        ),
+          ),
+          Obx(() => DropdownButton<TimeRange>(
+            value: controller.selectedRange.value,
+            dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+            ),
+            items: TimeRange.values.map((range) {
+              return DropdownMenuItem<TimeRange>(
+                value: range,
+                child: Text(range.label),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                controller.changeRange(value);
+              }
+            },
+          )),
+        ],
       ),
     );
   }

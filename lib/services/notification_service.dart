@@ -4,12 +4,16 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:get/get.dart';
 import 'package:money_flow/services/transaction_service.dart';
+import 'package:intl/intl.dart';
 
 class NotificationService extends GetxService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
   final TransactionService _transactionService = Get.find();
+  
+  // 🔥 Para evitar múltiples programaciones
+  bool _isScheduled = false;
 
   Future<NotificationService> init() async {
     tz.initializeTimeZones();
@@ -92,7 +96,6 @@ class NotificationService extends GetxService {
     await _notifications.show(id, title, body, details, payload: payload);
   }
 
-  // ==================== NOTIFICACIÓN PROGRAMADA ====================
   Future<void> scheduleNotification({
     required int id,
     required String title,
@@ -141,29 +144,33 @@ class NotificationService extends GetxService {
       );
       
       print('✅ Notificación programada para: $scheduledTime');
+      _isScheduled = true;
       
     } catch (e) {
       print('⚠️ Error programando notificación: $e');
-      // Si falla, mostrar notificación inmediata
-      await showNotification(
-        id: id,
-        title: title,
-        body: body,
-        payload: payload,
-      );
     }
   }
 
   Future<void> cancelNotification(int id) async {
     await _notifications.cancel(id);
+    if (id == 999) {
+      _isScheduled = false;
+    }
   }
 
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
+    _isScheduled = false;
   }
 
   // ==================== RESUMEN DIARIO ====================
   Future<void> scheduleDailySummaryIfEnabled() async {
+    // 🔥 SOLO PROGRAMAR SI NO ESTÁ YA PROGRAMADA
+    if (_isScheduled) {
+      print('📊 El resumen diario ya está programado');
+      return;
+    }
+
     final now = DateTime.now();
     final scheduledTime = DateTime(
       now.year,
@@ -186,6 +193,8 @@ class NotificationService extends GetxService {
       scheduledTime: finalTime,
       payload: 'home',
     );
+    
+    print('📊 Resumen diario programado para las 9:00 PM');
   }
 
   Future<String> _getDailySummary() async {
@@ -209,7 +218,7 @@ class NotificationService extends GetxService {
     final balance = totalIncome - totalExpense;
 
     if (transactions.isEmpty) {
-      return 'Hoy no hubo movimientos. Mañana es un nuevo día para gestionar tus finanzas. 💪';
+      return 'Hoy no has registrado movimientos en tu cuenta.';
     }
 
     return '💰 Ingresos: \$${totalIncome.toStringAsFixed(2)}\n'

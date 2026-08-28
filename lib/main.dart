@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/notification_service.dart';
@@ -8,7 +11,8 @@ import 'package:money_flow/services/budget_service.dart';
 import 'package:money_flow/services/csv_export_service.dart';
 import 'package:money_flow/services/pdf_export_service.dart';
 import 'package:money_flow/services/export_service.dart';
-import 'package:money_flow/views/screens/home_screen.dart';
+import 'package:money_flow/controllers/navigation_controller.dart';
+import 'package:money_flow/views/screens/splash_screen.dart';
 import 'package:money_flow/theme/app_theme.dart';
 import 'package:money_flow/l10n/translations.dart';
 
@@ -21,21 +25,47 @@ void main() async {
     // 1. Preferencias primero
     await Get.putAsync(() => PreferencesService().init());
     
-    // 2. Controlador de traducciones
+    // 2. DETECTAR IDIOMA DEL SISTEMA
+    final prefs = Get.find<PreferencesService>();
+    
+    // Solo detectar si es la primera vez (idioma por defecto 'es')
+    if (prefs.language == 'es' && prefs.themeMode == 'light') {
+      final deviceLocale = PlatformDispatcher.instance.locale;
+      final languageCode = deviceLocale.languageCode;
+      
+      // 🔥 REGLAS DE IDIOMA:
+      // - Si es español → español
+      // - Si es inglés → inglés
+      // - Cualquier otro idioma → inglés (por defecto)
+      if (languageCode == 'es') {
+        prefs.language = 'es';
+        print('🌐 Idioma detectado: Español');
+      } else {
+        // Inglés por defecto para cualquier otro idioma
+        prefs.language = 'en';
+        print('🌐 Idioma detectado: ${languageCode.toUpperCase()} → configurado como Inglés (por defecto)');
+      }
+    }
+    
+    // 3. Controlador de traducciones
     Get.put(AppTranslationsController());
     print('✅ AppTranslationsController inicializado');
     
-    // 3. Servicios de base de datos
+    // 4. Controlador de navegación
+    Get.put(NavigationController());
+    print('✅ NavigationController inicializado');
+    
+    // 5. Servicios de base de datos
     Get.put(CategoryService());
     Get.put(TransactionService());
     Get.put(BudgetService());
     
-    // 4. Servicios de exportación
+    // 6. Servicios de exportación
     Get.put(CsvExportService());
     Get.put(PdfExportService());
     Get.put(ExportService());
 
-    // 🔥 5. Servicio de notificaciones
+    // 7. Servicio de notificaciones
     await Get.putAsync(() => NotificationService().init());
     
     print('✅ Servicios inicializados');
@@ -45,15 +75,18 @@ void main() async {
     await categoryService.loadDefaultCategories();
     print('✅ Categorías por defecto cargadas');
 
-    // 🔥 Solicitar permisos de notificación
+    // Solicitar permisos de notificación
     final notificationService = Get.find<NotificationService>();
     final hasPermission = await notificationService.requestPermissions();
     print('🔔 Permisos de notificación: $hasPermission');
 
-    // 🔥 Programar resumen diario si tiene permiso
+    // Programar resumen diario si tiene permiso
     if (hasPermission) {
-      await notificationService.scheduleDailySummaryIfEnabled();
-      print('📊 Resumen diario programado');
+      final prefs2 = Get.find<PreferencesService>();
+      if (prefs2.dailySummaryEnabled) {
+        await notificationService.scheduleDailySummaryIfEnabled();
+        print('📊 Resumen diario programado');
+      }
     }
     
     runApp(const MyApp());
@@ -74,7 +107,6 @@ class MyApp extends StatelessWidget {
     final translationsController = Get.find<AppTranslationsController>();
     final isDarkMode = prefs.themeMode == 'dark';
     
-    // Cargar idioma guardado
     translationsController.currentLanguage.value = prefs.language;
     
     return GetMaterialApp(
@@ -83,11 +115,12 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
       locale: Locale(prefs.language),
-      fallbackLocale: const Locale('es'),
+      fallbackLocale: const Locale('en'), // 🔥 CAMBIADO: fallback a inglés
       translations: AppTranslations(),
-      // Usar el controlador para traducciones dinámicas
+      defaultTransition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 300),
       initialBinding: BindingsBuilder(() {
         Get.put(AppTranslationsController());
       }),

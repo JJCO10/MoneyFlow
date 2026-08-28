@@ -250,6 +250,32 @@ class SettingsScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 16),
+
+            // ==================== FEEDBACK HÁPTICO ====================
+            _buildSection(
+              title: 'Interacción',
+              cardBg: cardBg,
+              shadowColor: shadowColor,
+              children: [
+                Obx(() => SwitchListTile(
+                  title: Text(
+                    'Vibración al tocar',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Respuesta háptica en botones y acciones',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  value: controller.hapticFeedbackEnabled.value,
+                  onChanged: (value) {
+                    controller.toggleHapticFeedback(value);
+                  },
+                  activeColor: AppColors.primary,
+                )),
+              ],
+            ),
+
+            const SizedBox(height: 16),
             
             // ==================== ACERCA DE ====================
             _buildSection(

@@ -74,8 +74,24 @@ class CategoryPieChart extends StatelessWidget {
                 }),
                 sectionsSpace: 2,
                 centerSpaceRadius: 40,
+                // 🔥 TOOLTIPS EN GRÁFICO CIRCULAR
                 pieTouchData: PieTouchData(
-                  touchCallback: (FlTouchEvent event, pieTouchResponse) {},
+                  enabled: true,
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    if (pieTouchResponse?.touchedSection != null) {
+                      final index = pieTouchResponse!.touchedSection!.touchedSectionIndex;
+                      final item = controller.categoryExpenses[index];
+                      final percentage = ((item['amount'] as double) / total * 100);
+                      Get.snackbar(
+                        item['name'],
+                        'Monto: \$${(item['amount'] as double).toStringAsFixed(2)}\nPorcentaje: ${percentage.toStringAsFixed(1)}%',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: colors[index % colors.length],
+                        colorText: Colors.white,
+                        duration: const Duration(seconds: 2),
+                      );
+                    }
+                  },
                 ),
               ),
             ),
