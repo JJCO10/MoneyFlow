@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/services/budget_service.dart';
 import 'package:money_flow/services/category_service.dart';
+import 'package:money_flow/services/notification_service.dart';
 import 'package:money_flow/models/budget_model.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:money_flow/theme/colors.dart';
@@ -9,32 +10,31 @@ import 'package:money_flow/theme/colors.dart';
 class BudgetController extends GetxController {
   final BudgetService _budgetService = Get.find();
   final CategoryService _categoryService = Get.find();
-  
+  final NotificationService _notificationService = Get.find();
+
   var isLoading = false.obs;
   var budgets = <Map<String, dynamic>>[].obs;
   var categories = <Category>[].obs;
-  
+
+  final Set<int> _notifiedCategories = {};
+
   @override
   void onInit() {
     super.onInit();
     loadBudgets();
   }
-  
+
   Future<void> loadBudgets() async {
     try {
       isLoading.value = true;
-      
-      // Cargar categorías (solo gastos)
+
       categories.value = await _categoryService.getCategoriesByType('expense');
-      
-      // Cargar presupuestos
+
       final budgetList = await _budgetService.getAllBudgets();
-      
-      // Crear mapa con información completa
+
       final result = <Map<String, dynamic>>[];
-      
+
       for (var category in categories) {
-        // Buscar presupuesto para esta categoría
         Budget? budget;
         for (var b in budgetList) {
           if (b.categoryId == category.id) {
@@ -42,10 +42,39 @@ class BudgetController extends GetxController {
             break;
           }
         }
-        
+
         final spent = await _budgetService.getCategorySpending(category.id!);
         final progress = budget != null ? (spent / budget.limit) * 100 : 0.0;
-        
+
+        // 🔥 VERIFICAR ALERTA DE PRESUPUESTO
+        if (budget != null) {
+          final isOverBudget = spent > budget.limit;
+          final isNearLimit = spent >= budget.limit * 0.8 && spent <= budget.limit;
+          final categoryId = category.id!;
+
+          if ((isNearLimit || isOverBudget) && !_notifiedCategories.contains(categoryId)) {
+            _notifiedCategories.add(categoryId);
+
+            final percentage = (spent / budget.limit * 100).toStringAsFixed(0);
+            final remaining = (budget.limit - spent).toStringAsFixed(2);
+            final overAmount = spent - budget.limit; // 🔥 CORREGIDO
+
+            String title = isOverBudget
+                ? '⚠️ Presupuesto Excedido'
+                : '⚠️ Alerta de Presupuesto';
+            String body = isOverBudget
+                ? 'Has excedido el presupuesto de ${category.name}. Excedido: \$${overAmount.toStringAsFixed(2)}'
+                : 'Has gastado el $percentage% del presupuesto de ${category.name}. Restante: \$${remaining}';
+
+            await _notificationService.showNotification(
+              id: categoryId,
+              title: title,
+              body: body,
+              payload: 'budgets',
+            );
+          }
+        }
+
         result.add({
           'category': category,
           'budget': budget,
@@ -55,16 +84,20 @@ class BudgetController extends GetxController {
           'isOverBudget': budget != null && spent > budget.limit,
         });
       }
-      
+
       budgets.value = result;
-      
+
     } catch (e) {
       print('❌ Error cargando presupuestos: $e');
     } finally {
       isLoading.value = false;
     }
   }
-  
+
+  void resetNotifications() {
+    _notifiedCategories.clear();
+  }
+
   Future<void> saveBudget(int categoryId, double limit, String period) async {
     try {
       final budget = Budget(
@@ -74,10 +107,10 @@ class BudgetController extends GetxController {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
+
       await _budgetService.saveBudget(budget);
       await loadBudgets();
-      
+
       Get.snackbar(
         'Éxito',
         'Presupuesto guardado correctamente',
@@ -97,12 +130,12 @@ class BudgetController extends GetxController {
       );
     }
   }
-  
+
   Future<void> deleteBudget(int budgetId) async {
     try {
       await _budgetService.deleteBudget(budgetId);
       await loadBudgets();
-      
+
       Get.snackbar(
         'Éxito',
         'Presupuesto eliminado correctamente',
@@ -122,17 +155,17 @@ class BudgetController extends GetxController {
       );
     }
   }
-  
+
   void showAddBudgetDialog(BuildContext context, {int? categoryId}) {
     final selectedCategoryId = categoryId?.obs ?? 0.obs;
     final limit = 0.0.obs;
     final period = 'monthly'.obs;
-    
+
     final limitController = TextEditingController();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    
+
     Get.dialog(
       AlertDialog(
         backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -144,7 +177,6 @@ class BudgetController extends GetxController {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Selector de categoría
               Obx(() => DropdownButtonFormField<int>(
                 value: selectedCategoryId.value == 0 ? null : selectedCategoryId.value,
                 dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -170,8 +202,6 @@ class BudgetController extends GetxController {
                 },
               )),
               const SizedBox(height: 16),
-              
-              // Campo de límite
               TextField(
                 controller: limitController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -187,8 +217,6 @@ class BudgetController extends GetxController {
                 },
               ),
               const SizedBox(height: 16),
-              
-              // Selector de período
               Obx(() => DropdownButtonFormField<String>(
                 value: period.value,
                 dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -229,7 +257,7 @@ class BudgetController extends GetxController {
                 Get.snackbar('Error', 'El límite debe ser mayor a 0');
                 return;
               }
-              
+
               saveBudget(selectedCategoryId.value, limit.value, period.value);
               Get.back();
             },
