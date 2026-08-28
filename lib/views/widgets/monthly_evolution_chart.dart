@@ -5,8 +5,8 @@ import 'package:money_flow/controllers/chart_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/l10n/translations.dart';
 
-class BalanceLineChart extends StatelessWidget {
-  const BalanceLineChart({super.key});
+class MonthlyEvolutionChart extends StatelessWidget {
+  const MonthlyEvolutionChart({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +21,12 @@ class BalanceLineChart extends StatelessWidget {
         );
       }
       
-      if (controller.dailyBalances.length < 2) {
+      if (controller.monthlyEvolution.length < 2) {
         return SizedBox(
           height: 200,
           child: Center(
             child: Text(
-              'min_days_data'.t,
+              'min_months_data'.t,
               style: TextStyle(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
               ),
@@ -35,8 +35,7 @@ class BalanceLineChart extends StatelessWidget {
         );
       }
       
-      final data = controller.dailyBalances;
-      
+      final data = controller.monthlyEvolution;
       final values = data.map((item) => item['balance'] as double).toList();
       final maxValue = values.reduce((a, b) => a > b ? a : b);
       final minValue = values.reduce((a, b) => a < b ? a : b);
@@ -71,9 +70,9 @@ class BalanceLineChart extends StatelessWidget {
                   reservedSize: 30,
                   getTitlesWidget: (value, meta) {
                     if (value.toInt() < data.length) {
-                      final day = data[value.toInt()]['day'] as String;
+                      final month = data[value.toInt()]['month'] as String;
                       return Text(
-                        day,
+                        month,
                         style: TextStyle(
                           fontSize: 10,
                           color: textColor,
@@ -143,6 +142,26 @@ class BalanceLineChart extends StatelessWidget {
                 ),
               ),
             ],
+            lineTouchData: LineTouchData(
+              enabled: true,
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                  return touchedSpots.map((LineBarSpot touchedSpot) {
+                    final spot = touchedSpot;
+                    final balance = spot.y;
+                    final month = data[spot.x.toInt()]['month'] as String;
+                    return LineTooltipItem(
+                      '$month: \$${balance.toStringAsFixed(2)}',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    );
+                  }).toList();
+                },
+              ),
+            ),
           ),
         ),
       );

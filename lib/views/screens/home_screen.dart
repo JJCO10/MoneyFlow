@@ -3,25 +3,41 @@ import 'package:get/get.dart';
 import 'package:money_flow/controllers/home_controller.dart';
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/screens/all_transactions_screen.dart';
-import 'package:money_flow/views/screens/budgets_screen.dart';
-import 'package:money_flow/views/screens/calendar_screen.dart';
-import 'package:money_flow/views/screens/charts_screen.dart';
 import 'package:money_flow/views/screens/edit_transaction_screen.dart';
 import 'package:money_flow/views/screens/settings_screen.dart';
 import 'package:money_flow/views/widgets/transaction_card.dart';
-import 'package:money_flow/views/screens/add_transaction_screen.dart';
-import 'package:money_flow/views/screens/categories_screen.dart';
 import 'package:money_flow/l10n/translations.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(HomeController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    final selectedIndex = 0.obs;
     
     return Scaffold(
       appBar: AppBar(
@@ -29,7 +45,6 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        actions: [],
         toolbarHeight: 0,
       ),
       body: Stack(
@@ -99,101 +114,18 @@ class HomeScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.settings),
                   color: AppColors.primary,
-                  onPressed: () => Get.to(() => const SettingsScreen()),
+                  onPressed: () {
+                    // 🔥 ELIMINAR Get.find<HapticFeedbackService>().lightVibrate();
+                    Get.to(() => const SettingsScreen());
+                  },
                   iconSize: 24,
                   padding: const EdgeInsets.all(8),
                 ),
               ),
             ),
           ),
-          
-          // ==================== BOTÓN DE AGREGAR (DERECHA) ====================
-          Positioned(
-            bottom: 20,  // 🔥 Ajusta este valor (70-90)
-            right: 24,   // 🔥 Posición desde la derecha
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: FloatingActionButton(
-                onPressed: () async {
-                  final result = await Get.to(() => AddTransactionScreen());
-                  if (result == true) {
-                    await controller.loadData();
-                    Get.snackbar(
-                      'info'.t,
-                      'data_updated'.t,
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.blue,
-                      colorText: Colors.white,
-                      duration: const Duration(seconds: 1),
-                    );
-                  }
-                },
-                backgroundColor: AppColors.primary,
-                child: const Icon(Icons.add, color: Colors.white),
-                elevation: 4,
-              ),
-            ),
-          ),
         ],
       ),
-      // ==================== BOTTOM NAVIGATION BAR ====================
-      bottomNavigationBar: Obx(() => BottomNavigationBar(
-        currentIndex: selectedIndex.value,
-        onTap: (index) {
-          selectedIndex.value = index;
-          switch (index) {
-            case 0:
-              break;
-            case 1:
-              Get.to(() => const CalendarScreen());
-              break;
-            case 2:
-              Get.to(() => const ChartsScreen());
-              break;
-            case 3:
-              Get.to(() => const CategoriesScreen());
-              break;
-            case 4:
-              Get.to(() => const BudgetsScreen());
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: 'home_title'.t,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today),
-            label: 'calendar_title'.t,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.show_chart),
-            label: 'charts_title'.t,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.category),
-            label: 'categories_title'.t,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.account_balance_wallet),
-            label: 'budgets_title'.t,
-          ),
-        ],
-      )),
     );
   }
   
@@ -311,6 +243,8 @@ class HomeScreen extends StatelessWidget {
       );
     }
     
+    final transactionList = controller.transactions.take(10).toList();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -332,20 +266,35 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ...controller.transactions.take(10).map((transaction) {
-          return TransactionCard(
-            transaction: transaction,
-            categoryName: controller.getCategoryName(transaction.categoryId),
-            categoryIcon: controller.getCategoryIcon(transaction.categoryId),
-            onTap: () async {
-              final result = await Get.to(() => EditTransactionScreen(
-                transaction: transaction,
-              ));
-              if (result == true) {
-                controller.loadData();
-              }
-            },
-            onDelete: () => controller.deleteTransaction(transaction.id!),
+        ...transactionList.asMap().entries.map((entry) {
+          final index = entry.key;
+          final transaction = entry.value;
+          
+          return FadeTransition(
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(
+                  index / transactionList.length, 
+                  1.0, 
+                  curve: Curves.easeOut,
+                ),
+              ),
+            ),
+            child: TransactionCard(
+              transaction: transaction,
+              categoryName: controller.getCategoryName(transaction.categoryId),
+              categoryIcon: controller.getCategoryIcon(transaction.categoryId),
+              onTap: () async {
+                final result = await Get.to(() => EditTransactionScreen(
+                  transaction: transaction,
+                ));
+                if (result == true) {
+                  controller.loadData();
+                }
+              },
+              onDelete: () => controller.deleteTransaction(transaction.id!),
+            ),
           );
         }).toList(),
       ],

@@ -13,7 +13,8 @@ class SettingsController extends GetxController {
   var selectedCurrency = '\$'.obs;
   var selectedLanguage = 'es'.obs;
   var dailySummaryEnabled = false.obs;
-  var budgetAlertsEnabled = true.obs; // 🔥 AGREGADO
+  var budgetAlertsEnabled = true.obs;
+  var hapticFeedbackEnabled = true.obs; // 🔥 NUEVO
   
   final List<String> currencies = ['\$', '€', '£', '¥', 'R\$', 'MX\$', 'COP\$'];
   final List<Map<String, String>> languages = [
@@ -28,7 +29,8 @@ class SettingsController extends GetxController {
     selectedCurrency.value = _prefs.currency;
     selectedLanguage.value = _prefs.language;
     dailySummaryEnabled.value = _prefs.dailySummaryEnabled;
-    budgetAlertsEnabled.value = _prefs.budgetAlertsEnabled; // 🔥 AGREGADO
+    budgetAlertsEnabled.value = _prefs.budgetAlertsEnabled;
+    hapticFeedbackEnabled.value = _prefs.hapticFeedbackEnabled; // 🔥 NUEVO
     _translations.currentLanguage.value = _prefs.language;
   }
   
@@ -86,6 +88,21 @@ class SettingsController extends GetxController {
     Get.snackbar(
       'Notificaciones',
       value ? 'Alertas de presupuesto activadas' : 'Alertas de presupuesto desactivadas',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: value ? Colors.green : Colors.orange,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+    );
+  }
+  
+  // 🔥 TOGGLE FEEDBACK HÁPTICO
+  Future<void> toggleHapticFeedback(bool value) async {
+    hapticFeedbackEnabled.value = value;
+    _prefs.hapticFeedbackEnabled = value;
+    
+    Get.snackbar(
+      'Configuración',
+      value ? 'Vibración activada' : 'Vibración desactivada',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: value ? Colors.green : Colors.orange,
       colorText: Colors.white,
