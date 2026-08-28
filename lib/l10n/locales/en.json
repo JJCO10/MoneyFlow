@@ -106,5 +106,11 @@
   "default": "Default",
   "set_budget": "Set budget",
   
-  "no_category": "No category"
+  "no_category": "No category",
+
+  "notifications_title": "Notifications",
+  "budget_reminders": "Budget reminders",
+  "budget_reminders_subtitle": "Receive alerts when you approach the limit",
+  "daily_summary": "Daily summary",
+  "daily_summary_subtitle": "Receive a summary of your expenses every day"
 }
