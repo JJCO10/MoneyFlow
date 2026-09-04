@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:money_flow/theme/colors.dart';
+import 'package:money_flow/l10n/translations.dart';
 
 class CategoryController extends GetxController {
   final CategoryService _categoryService = Get.find();
@@ -58,15 +59,15 @@ class CategoryController extends GetxController {
       await loadCategories();
       
       Get.snackbar(
-        'Éxito',
-        'Categoría creada correctamente',
+        'success'.t,
+        'category_created'.t,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
     } catch (e) {
       Get.snackbar(
-        'Error',
+        'error'.t,
         'No se pudo crear la categoría',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
@@ -75,43 +76,16 @@ class CategoryController extends GetxController {
     }
   }
   
+  // 🔥 MÉTODO DE EDICIÓN COMPLETO
   Future<void> editCategory(Category category) async {
-    // TODO: Implementar edición
-    Get.snackbar('Info', 'Editar categoría en desarrollo');
-  }
-  
-  Future<void> deleteCategory(int id) async {
-    try {
-      await _categoryService.deleteCategory(id);
-      await loadCategories();
-      
-      Get.snackbar(
-        'Éxito',
-        'Categoría eliminada correctamente',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'No se pudo eliminar la categoría',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
-  
-  void showAddCategoryDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    var selectedType = 'expense'.obs;
-    var selectedIcon = '🍽️'.obs;
-    var selectedColor = 0xFF3B82F6.obs;
+    final nameController = TextEditingController(text: category.name);
+    var selectedType = category.type.obs;
+    var selectedIcon = category.icon.obs;
+    var selectedColor = category.color.obs;
     
     Get.dialog(
       AlertDialog(
-        title: const Text('Nueva Categoría'),
+        title: Text('edit'.t),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -133,7 +107,7 @@ class CategoryController extends GetxController {
                   children: [
                     Expanded(
                       child: _buildTypeOption(
-                        'Gasto',
+                        'expense_type'.t,
                         'expense',
                         selectedType,
                       ),
@@ -141,7 +115,7 @@ class CategoryController extends GetxController {
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildTypeOption(
-                        'Ingreso',
+                        'income_type'.t,
                         'income',
                         selectedType,
                       ),
@@ -151,7 +125,7 @@ class CategoryController extends GetxController {
                 const SizedBox(height: 16),
                 
                 // Iconos
-                const Text(
+                Text(
                   'Selecciona un ícono',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
@@ -181,7 +155,7 @@ class CategoryController extends GetxController {
                 const SizedBox(height: 16),
                 
                 // Colores
-                const Text(
+                Text(
                   'Selecciona un color',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
@@ -215,13 +189,195 @@ class CategoryController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
+            child: Text('cancel'.t),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) {
+                Get.snackbar(
+                  'error'.t,
+                  'El nombre es requerido',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+                return;
+              }
+              
+              // 🔥 ACTUALIZAR CATEGORÍA
+              final updatedCategory = Category(
+                id: category.id,
+                name: nameController.text,
+                type: selectedType.value,
+                icon: selectedIcon.value,
+                color: selectedColor.value,
+                isDefault: category.isDefault,
+              );
+              
+              await _categoryService.saveCategory(updatedCategory);
+              await loadCategories();
+              Get.back();
+              
+              Get.snackbar(
+                'success'.t,
+                'Categoría actualizada correctamente',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.green,
+                colorText: Colors.white,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: Text('update'.t),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<void> deleteCategory(int id) async {
+    try {
+      await _categoryService.deleteCategory(id);
+      await loadCategories();
+      
+      Get.snackbar(
+        'success'.t,
+        'category_deleted'.t,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'error'.t,
+        'No se pudo eliminar la categoría',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+  
+  void showAddCategoryDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    var selectedType = 'expense'.obs;
+    var selectedIcon = '🍽️'.obs;
+    var selectedColor = 0xFF3B82F6.obs;
+    
+    Get.dialog(
+      AlertDialog(
+        title: Text('Nueva Categoría'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Nombre
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de la categoría',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Tipo (Ingreso/Gasto)
+                Obx(() => Row(
+                  children: [
+                    Expanded(
+                      child: _buildTypeOption(
+                        'expense_type'.t,
+                        'expense',
+                        selectedType,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildTypeOption(
+                        'income_type'.t,
+                        'income',
+                        selectedType,
+                      ),
+                    ),
+                  ],
+                )),
+                const SizedBox(height: 16),
+                
+                // Iconos
+                Text(
+                  'Selecciona un ícono',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Obx(() => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: availableIcons.map((icon) {
+                    final isSelected = selectedIcon.value == icon;
+                    return GestureDetector(
+                      onTap: () => selectedIcon.value = icon,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected ? Colors.blue : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(icon, style: const TextStyle(fontSize: 24)),
+                      ),
+                    );
+                  }).toList(),
+                )),
+                const SizedBox(height: 16),
+                
+                // Colores
+                Text(
+                  'Selecciona un color',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Obx(() => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: availableColors.map((color) {
+                    final isSelected = selectedColor.value == color;
+                    return GestureDetector(
+                      onTap: () => selectedColor.value = color,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Color(color),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? Colors.black : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                )),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.t),
           ),
           ElevatedButton(
             onPressed: () {
               if (nameController.text.isEmpty) {
                 Get.snackbar(
-                  'Error',
+                  'error'.t,
                   'El nombre es requerido',
                   snackPosition: SnackPosition.BOTTOM,
                   backgroundColor: Colors.red,
@@ -241,7 +397,7 @@ class CategoryController extends GetxController {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
             ),
-            child: const Text('Guardar'),
+            child: Text('save'.t),
           ),
         ],
       ),
