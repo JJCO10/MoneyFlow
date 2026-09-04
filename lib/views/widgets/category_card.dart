@@ -20,10 +20,8 @@ class CategoryCard extends StatelessWidget {
     final isIncome = category.type == 'income';
     final typeLabel = isIncome ? 'income_type'.t : 'expense_type'.t;
     final typeColor = isIncome ? AppColors.secondary : AppColors.danger;
-    final isDefault = category.isDefault;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -43,42 +41,20 @@ class CategoryCard extends StatelessWidget {
             color: textPrimary,
           ),
         ),
-        subtitle: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                typeLabel,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: typeColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+        subtitle: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: typeColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            typeLabel,
+            style: TextStyle(
+              fontSize: 10,
+              color: typeColor,
+              fontWeight: FontWeight.w500,
             ),
-            if (isDefault) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'default'.t,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

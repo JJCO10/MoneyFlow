@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, PlatformDispatcher;
+import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' hide Transaction;
 import 'package:path/path.dart';
@@ -45,12 +46,11 @@ class DatabaseHelper {
       }
     }
 
-    // Abrir base de datos con versión 2 (para migración)
     return await openDatabase(
       dbPath,
-      version: 2, // <-- VERSIÓN 2 PARA MIGRACIÓN
+      version: 2,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade, // <-- MIGRACIÓN
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -60,7 +60,6 @@ class DatabaseHelper {
     
     if (oldVersion < 2) {
       try {
-        // Crear tabla de presupuestos
         await db.execute('''
           CREATE TABLE budgets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,32 +121,53 @@ class DatabaseHelper {
         )
       ''');
 
-      // Insertar categorías por defecto
-      final defaultCategories = [
-        // Gastos
-        Category(name: 'Alimentación', type: 'expense', icon: '🍽️', color: 0xFFEF4444, isDefault: true),
-        Category(name: 'Transporte', type: 'expense', icon: '🚗', color: 0xFF3B82F6, isDefault: true),
-        Category(name: 'Compras', type: 'expense', icon: '🛍️', color: 0xFF8B5CF6, isDefault: true),
-        Category(name: 'Salud', type: 'expense', icon: '🏥', color: 0xFF10B981, isDefault: true),
-        Category(name: 'Educación', type: 'expense', icon: '📚', color: 0xFFF59E0B, isDefault: true),
-        Category(name: 'Entretenimiento', type: 'expense', icon: '🎬', color: 0xFFEC4899, isDefault: true),
-        Category(name: 'Hogar', type: 'expense', icon: '🏠', color: 0xFF14B8A6, isDefault: true),
-        
-        // Ingresos
-        Category(name: 'Salario', type: 'income', icon: '💰', color: 0xFF10B981, isDefault: true),
-        Category(name: 'Freelance', type: 'income', icon: '💻', color: 0xFF3B82F6, isDefault: true),
-        Category(name: 'Inversiones', type: 'income', icon: '📈', color: 0xFF8B5CF6, isDefault: true),
-      ];
+      // 🔥 CATEGORÍAS POR DEFECTO SEGÚN IDIOMA
+      final String languageCode = PlatformDispatcher.instance.locale.languageCode;
+      final bool useSpanish = languageCode == 'es';
+      
+      final defaultCategories = useSpanish ? _getSpanishDefaultCategories() : _getEnglishDefaultCategories();
 
       for (var category in defaultCategories) {
         await db.insert('categories', category.toMap());
       }
       
-      print('✅ Base de datos creada con categorías por defecto');
+      print('✅ Base de datos creada con categorías por defecto en ${useSpanish ? "Español" : "Inglés"}');
     } catch (e) {
       print('❌ Error creando base de datos: $e');
       rethrow;
     }
+  }
+
+  // 🔥 CATEGORÍAS EN ESPAÑOL
+  List<Category> _getSpanishDefaultCategories() {
+    return [
+      Category(name: 'Alimentación', type: 'expense', icon: '🍽️', color: 0xFFEF4444, isDefault: true),
+      Category(name: 'Transporte', type: 'expense', icon: '🚗', color: 0xFF3B82F6, isDefault: true),
+      Category(name: 'Compras', type: 'expense', icon: '🛍️', color: 0xFF8B5CF6, isDefault: true),
+      Category(name: 'Salud', type: 'expense', icon: '🏥', color: 0xFF10B981, isDefault: true),
+      Category(name: 'Educación', type: 'expense', icon: '📚', color: 0xFFF59E0B, isDefault: true),
+      Category(name: 'Entretenimiento', type: 'expense', icon: '🎬', color: 0xFFEC4899, isDefault: true),
+      Category(name: 'Hogar', type: 'expense', icon: '🏠', color: 0xFF14B8A6, isDefault: true),
+      Category(name: 'Salario', type: 'income', icon: '💰', color: 0xFF10B981, isDefault: true),
+      Category(name: 'Freelance', type: 'income', icon: '💻', color: 0xFF3B82F6, isDefault: true),
+      Category(name: 'Inversiones', type: 'income', icon: '📈', color: 0xFF8B5CF6, isDefault: true),
+    ];
+  }
+
+  // 🔥 CATEGORÍAS EN INGLÉS
+  List<Category> _getEnglishDefaultCategories() {
+    return [
+      Category(name: 'Food', type: 'expense', icon: '🍽️', color: 0xFFEF4444, isDefault: true),
+      Category(name: 'Transport', type: 'expense', icon: '🚗', color: 0xFF3B82F6, isDefault: true),
+      Category(name: 'Shopping', type: 'expense', icon: '🛍️', color: 0xFF8B5CF6, isDefault: true),
+      Category(name: 'Health', type: 'expense', icon: '🏥', color: 0xFF10B981, isDefault: true),
+      Category(name: 'Education', type: 'expense', icon: '📚', color: 0xFFF59E0B, isDefault: true),
+      Category(name: 'Entertainment', type: 'expense', icon: '🎬', color: 0xFFEC4899, isDefault: true),
+      Category(name: 'Home', type: 'expense', icon: '🏠', color: 0xFF14B8A6, isDefault: true),
+      Category(name: 'Salary', type: 'income', icon: '💰', color: 0xFF10B981, isDefault: true),
+      Category(name: 'Freelance', type: 'income', icon: '💻', color: 0xFF3B82F6, isDefault: true),
+      Category(name: 'Investments', type: 'income', icon: '📈', color: 0xFF8B5CF6, isDefault: true),
+    ];
   }
 
   // ==================== MÉTODOS DE CATEGORÍAS ====================
@@ -194,6 +214,7 @@ class DatabaseHelper {
     );
   }
 
+  // 🔥 ELIMINAR CATEGORÍA (SIN RESTRICCIÓN DE isDefault)
   Future<int> deleteCategory(int id) async {
     final db = await database;
     return await db.delete(
