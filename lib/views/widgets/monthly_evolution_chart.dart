@@ -21,14 +21,18 @@ class MonthlyEvolutionChart extends StatelessWidget {
         );
       }
       
-      if (controller.monthlyEvolution.length < 2) {
+      // 🔥 PRIMERO: Verificar si hay datos reales
+      final hasData = controller.monthlyEvolution.any((item) => item['balance'] != 0);
+      
+      if (controller.monthlyEvolution.length < 2 || !hasData) {
         return SizedBox(
           height: 200,
           child: Center(
             child: Text(
-              'min_months_data'.t,
+              'no_data'.t,
               style: TextStyle(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                fontSize: 16,
               ),
             ),
           ),
