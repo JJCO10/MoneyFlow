@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:money_flow/services/backup_service.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/notification_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
@@ -64,6 +65,7 @@ void main() async {
     Get.put(CsvExportService());
     Get.put(PdfExportService());
     Get.put(ExportService());
+    Get.put(BackupService());
 
     // 7. Servicio de notificaciones
     await Get.putAsync(() => NotificationService().init());

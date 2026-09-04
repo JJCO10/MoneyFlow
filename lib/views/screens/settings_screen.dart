@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:intl/intl.dart';
+import 'package:money_flow/controllers/home_controller.dart';
 import 'package:money_flow/controllers/settings_controller.dart';
 import 'package:money_flow/services/export_service.dart';
+import 'package:money_flow/services/backup_service.dart';
+import 'package:money_flow/utils/file_share_channel.dart';
 import 'package:money_flow/theme/colors.dart';
-import 'package:intl/intl.dart';
 import 'package:money_flow/l10n/translations.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -25,13 +30,9 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('settings_title'.t),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -60,40 +61,6 @@ class SettingsScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 16),
-            
-            // ==================== MONEDA (OCULTA) ====================
-            // Comentada mientras no esté implementada
-            // _buildSection(
-            //   title: 'currency'.t,
-            //   cardBg: cardBg,
-            //   shadowColor: shadowColor,
-            //   children: [
-            //     Obx(() => DropdownButtonFormField<String>(
-            //       value: controller.selectedCurrency.value,
-            //       dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
-            //       style: TextStyle(color: textPrimary),
-            //       decoration: InputDecoration(
-            //         labelText: 'default_currency'.t,
-            //         labelStyle: TextStyle(color: textSecondary),
-            //         border: const OutlineInputBorder(),
-            //       ),
-            //       items: controller.currencies.map((currency) {
-            //         return DropdownMenuItem<String>(
-            //           value: currency,
-            //           child: Text(
-            //             currency,
-            //             style: TextStyle(color: textPrimary),
-            //           ),
-            //         );
-            //       }).toList(),
-            //       onChanged: (value) {
-            //         if (value != null) {
-            //           controller.changeCurrency(value);
-            //         }
-            //       },
-            //     )),
-            //   ],
-            // ),
             
             // ==================== IDIOMA ====================
             _buildSection(
@@ -248,7 +215,45 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            
+
+            const SizedBox(height: 16),
+
+            // ==================== BACKUP ====================
+            _buildSection(
+              title: 'Backup',
+              cardBg: cardBg,
+              shadowColor: shadowColor,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.backup, color: AppColors.primary),
+                  title: Text(
+                    'Exportar backup',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Guardar todos los datos en un archivo',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: _exportBackup,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.restore, color: AppColors.primary),
+                  title: Text(
+                    'Importar backup',
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Restaurar datos desde un archivo',
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: _importBackup,
+                ),
+              ],
+            ),
+
             const SizedBox(height: 16),
 
             // ==================== FEEDBACK HÁPTICO ====================
@@ -349,5 +354,148 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ==================== MÉTODOS DE BACKUP ====================
+  void _exportBackup() async {
+    final backupService = Get.find<BackupService>();
+    final file = await backupService.exportBackup();
+    
+    if (file != null) {
+      Get.snackbar(
+        'Éxito',
+        'Backup exportado correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      
+      // Compartir archivo
+      await FileShareChannel.shareFile(file.path, 'application/json');
+    } else {
+      Get.snackbar(
+        'Error',
+        'No se pudo exportar el backup',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  // 🔥 MÉTODO ACTUALIZADO CON FILE_SELECTOR
+  void _importBackup() async {
+    try {
+      // Seleccionar archivo usando file_selector
+      final typeGroup = XTypeGroup(
+        label: 'JSON',
+        extensions: ['json'],
+        mimeTypes: ['application/json'],
+      );
+      
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      
+      if (file == null) {
+        print('❌ Selección de archivo cancelada');
+        return;
+      }
+      
+      final backupService = Get.find<BackupService>();
+      
+      // Verificar información del backup
+      final info = await backupService.getBackupInfo(File(file.path));
+      if (info == null) {
+        Get.snackbar(
+          'Error',
+          'El archivo no es un backup válido',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+      
+      // Mostrar información antes de importar
+      final confirm = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('Información del Backup'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Versión: ${info['version']}'),
+              Text('Fecha: ${info['exportDate']}'),
+              const SizedBox(height: 8),
+              Text('Categorías: ${info['categories']}'),
+              Text('Transacciones: ${info['transactions']}'),
+              Text('Presupuestos: ${info['budgets']}'),
+              const SizedBox(height: 16),
+              const Text(
+                '¿Deseas importar estos datos?',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: const Text('Importar'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirm != true) {
+        print('❌ Importación cancelada por el usuario');
+        return;
+      }
+      
+      // Importar datos
+      final success = await backupService.importBackup(File(file.path));
+      
+      if (success) {
+        Get.snackbar(
+          'Éxito',
+          'Backup importado correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        
+        // Recargar datos
+        final homeController = Get.find<HomeController>();
+        await homeController.loadData();
+        
+      } else {
+        Get.snackbar(
+          'Error',
+          'No se pudo importar el backup',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al importar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 }
