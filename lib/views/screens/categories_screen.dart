@@ -16,7 +16,7 @@ class CategoriesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('categories_title'.t),
-        backgroundColor: Colors.transparent, // 🔥 TRANSPARENTE
+        backgroundColor: Colors.transparent,
         foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
       ),
@@ -63,12 +63,13 @@ class CategoriesScreen extends StatelessWidget {
           itemCount: controller.categories.length,
           itemBuilder: (context, index) {
             final category = controller.categories[index];
-            final isDefault = category.isDefault;
             
+            // 🔥 ELIMINAR LA CONDICIÓN isDefault
+            // Ahora todas las categorías se pueden editar y eliminar
             return CategoryCard(
               category: category,
-              onEdit: isDefault ? null : () => controller.editCategory(category),
-              onDelete: isDefault ? null : () => controller.deleteCategory(category.id!),
+              onEdit: () => controller.editCategory(category), // 🔥 Siempre disponible
+              onDelete: () => controller.deleteCategory(category.id!), // 🔥 Siempre disponible
             );
           },
         );

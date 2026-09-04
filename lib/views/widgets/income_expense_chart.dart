@@ -23,6 +23,23 @@ class IncomeExpenseChart extends StatelessWidget {
       
       final income = controller.monthlyIncome.value;
       final expense = controller.monthlyExpense.value;
+      
+      // 🔥 Si no hay datos, mostrar mensaje
+      if (income == 0 && expense == 0) {
+        return SizedBox(
+          height: 200,
+          child: Center(
+            child: Text(
+              'no_data'.t,
+              style: TextStyle(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+      }
+      
       final maxValue = (income > expense ? income : expense) * 1.2;
       
       final gridColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
@@ -34,7 +51,6 @@ class IncomeExpenseChart extends StatelessWidget {
           BarChartData(
             alignment: BarChartAlignment.spaceAround,
             maxY: maxValue > 0 ? maxValue : 100,
-            // 🔥 TOOLTIPS INTERACTIVOS
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
