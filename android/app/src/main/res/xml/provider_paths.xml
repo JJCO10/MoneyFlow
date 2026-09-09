@@ -2,12 +2,22 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Directorio cache de la app -->
     <cache-path name="cache" path="/" />
+    
     <!-- Directorio de archivos de la app -->
     <files-path name="files" path="/" />
+    
     <!-- Directorio externo -->
     <external-path name="external" path="." />
+    
     <!-- Directorio externo de archivos -->
     <external-files-path name="external_files" path="." />
+    
     <!-- Directorio externo de cache -->
     <external-cache-path name="external_cache" path="." />
+    
+    <!-- 🔥 Directorio de Descargas (Download) -->
+    <external-path name="download" path="Download/" />
+    
+    <!-- Directorio de archivos de la app (app_flutter) -->
+    <files-path name="app_files" path="." />
 </paths>

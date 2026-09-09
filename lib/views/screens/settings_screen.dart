@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:intl/intl.dart';
+import 'package:money_flow/controllers/home_controller.dart';
 import 'package:money_flow/controllers/settings_controller.dart';
 import 'package:money_flow/services/export_service.dart';
+import 'package:money_flow/services/backup_service.dart';
+import 'package:money_flow/utils/file_share_channel.dart';
 import 'package:money_flow/theme/colors.dart';
-import 'package:intl/intl.dart';
 import 'package:money_flow/l10n/translations.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -25,13 +30,9 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('settings_title'.t),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -60,40 +61,6 @@ class SettingsScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 16),
-            
-            // ==================== MONEDA (OCULTA) ====================
-            // Comentada mientras no esté implementada
-            // _buildSection(
-            //   title: 'currency'.t,
-            //   cardBg: cardBg,
-            //   shadowColor: shadowColor,
-            //   children: [
-            //     Obx(() => DropdownButtonFormField<String>(
-            //       value: controller.selectedCurrency.value,
-            //       dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
-            //       style: TextStyle(color: textPrimary),
-            //       decoration: InputDecoration(
-            //         labelText: 'default_currency'.t,
-            //         labelStyle: TextStyle(color: textSecondary),
-            //         border: const OutlineInputBorder(),
-            //       ),
-            //       items: controller.currencies.map((currency) {
-            //         return DropdownMenuItem<String>(
-            //           value: currency,
-            //           child: Text(
-            //             currency,
-            //             style: TextStyle(color: textPrimary),
-            //           ),
-            //         );
-            //       }).toList(),
-            //       onChanged: (value) {
-            //         if (value != null) {
-            //           controller.changeCurrency(value);
-            //         }
-            //       },
-            //     )),
-            //   ],
-            // ),
             
             // ==================== IDIOMA ====================
             _buildSection(
@@ -130,20 +97,20 @@ class SettingsScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // ==================== NOTIFICACIONES ====================
+            // ==================== NOTIFICACIONES (TRADUCIDO) ====================
             _buildSection(
-              title: 'Notificaciones',
+              title: 'notifications'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 ListTile(
                   leading: Icon(Icons.notifications, color: AppColors.primary),
                   title: Text(
-                    'Recordatorios de presupuestos',
+                    'budget_reminders'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Recibir alertas cuando te acerques al límite',
+                    'budget_reminders_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
@@ -158,11 +125,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.alarm, color: AppColors.primary),
                   title: Text(
-                    'Resumen diario',
+                    'daily_summary'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Recibir un resumen de tus gastos cada día a las 9:00 PM',
+                    'daily_summary_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
@@ -248,22 +215,60 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
 
-            // ==================== FEEDBACK HÁPTICO ====================
+            // ==================== BACKUP (TRADUCIDO) ====================
             _buildSection(
-              title: 'Interacción',
+              title: 'backup'.t,
+              cardBg: cardBg,
+              shadowColor: shadowColor,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.backup, color: AppColors.primary),
+                  title: Text(
+                    'export_backup'.t,
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'export_backup_subtitle'.t,
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: _exportBackup,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.restore, color: AppColors.primary),
+                  title: Text(
+                    'import_backup'.t,
+                    style: TextStyle(color: textPrimary),
+                  ),
+                  subtitle: Text(
+                    'import_backup_subtitle'.t,
+                    style: TextStyle(color: textSecondary),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  onTap: _importBackup,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // ==================== INTERACCIÓN (TRADUCIDO) ====================
+            _buildSection(
+              title: 'interaction'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 Obx(() => SwitchListTile(
                   title: Text(
-                    'Vibración al tocar',
+                    'haptic_feedback'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Respuesta háptica en botones y acciones',
+                    'haptic_feedback_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   value: controller.hapticFeedbackEnabled.value,
@@ -349,5 +354,142 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ==================== MÉTODOS DE BACKUP ====================
+  void _exportBackup() async {
+    final backupService = Get.find<BackupService>();
+    final file = await backupService.exportBackup();
+    
+    if (file != null) {
+      Get.snackbar(
+        'Éxito',
+        'backup_export_success'.t,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      
+      await FileShareChannel.shareFile(file.path, 'application/json');
+    } else {
+      Get.snackbar(
+        'Error',
+        'backup_export_error'.t,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  void _importBackup() async {
+    try {
+      final typeGroup = XTypeGroup(
+        label: 'JSON',
+        extensions: ['json'],
+        mimeTypes: ['application/json'],
+      );
+      
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      
+      if (file == null) {
+        print('❌ Selección de archivo cancelada');
+        return;
+      }
+      
+      final backupService = Get.find<BackupService>();
+      
+      final info = await backupService.getBackupInfo(File(file.path));
+      if (info == null) {
+        Get.snackbar(
+          'Error',
+          'backup_invalid_file'.t,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+      
+      // 🔥 CONFIRMAR IMPORTACIÓN CON LA INFORMACIÓN DEL BACKUP
+      final confirm = await Get.dialog<bool>(
+        AlertDialog(
+          title: Text('backup_info_title'.t),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${'backup_info_version'.t}: ${info['version']}'),
+              Text('${'backup_info_date'.t}: ${info['exportDate']}'),
+              const SizedBox(height: 8),
+              Text('${'backup_info_categories'.t}: ${info['categories']}'),
+              Text('${'backup_info_transactions'.t}: ${info['transactions']}'),
+              Text('${'backup_info_budgets'.t}: ${info['budgets']}'),
+              const SizedBox(height: 16),
+              Text(
+                'backup_confirm_message'.t,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: Text('backup_cancel'.t),
+            ),
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: Text('backup_import'.t),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirm != true) {
+        print('❌ Importación cancelada por el usuario');
+        return;
+      }
+      
+      final success = await backupService.importBackup(File(file.path));
+      
+      if (success) {
+        Get.snackbar(
+          'Éxito',
+          'backup_import_success'.t,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        
+        final homeController = Get.find<HomeController>();
+        await homeController.loadData();
+        
+      } else {
+        Get.snackbar(
+          'Error',
+          'backup_import_error'.t,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'backup_import_error'.t,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 }
