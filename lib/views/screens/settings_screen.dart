@@ -97,20 +97,20 @@ class SettingsScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // ==================== NOTIFICACIONES ====================
+            // ==================== NOTIFICACIONES (TRADUCIDO) ====================
             _buildSection(
-              title: 'Notificaciones',
+              title: 'notifications'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 ListTile(
                   leading: Icon(Icons.notifications, color: AppColors.primary),
                   title: Text(
-                    'Recordatorios de presupuestos',
+                    'budget_reminders'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Recibir alertas cuando te acerques al límite',
+                    'budget_reminders_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
@@ -125,11 +125,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.alarm, color: AppColors.primary),
                   title: Text(
-                    'Resumen diario',
+                    'daily_summary'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Recibir un resumen de tus gastos cada día a las 9:00 PM',
+                    'daily_summary_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
@@ -218,20 +218,20 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ==================== BACKUP ====================
+            // ==================== BACKUP (TRADUCIDO) ====================
             _buildSection(
-              title: 'Backup',
+              title: 'backup'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 ListTile(
                   leading: Icon(Icons.backup, color: AppColors.primary),
                   title: Text(
-                    'Exportar backup',
+                    'export_backup'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Guardar todos los datos en un archivo',
+                    'export_backup_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
@@ -241,11 +241,11 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.restore, color: AppColors.primary),
                   title: Text(
-                    'Importar backup',
+                    'import_backup'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Restaurar datos desde un archivo',
+                    'import_backup_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
@@ -256,19 +256,19 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ==================== FEEDBACK HÁPTICO ====================
+            // ==================== INTERACCIÓN (TRADUCIDO) ====================
             _buildSection(
-              title: 'Interacción',
+              title: 'interaction'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 Obx(() => SwitchListTile(
                   title: Text(
-                    'Vibración al tocar',
+                    'haptic_feedback'.t,
                     style: TextStyle(color: textPrimary),
                   ),
                   subtitle: Text(
-                    'Respuesta háptica en botones y acciones',
+                    'haptic_feedback_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
                   value: controller.hapticFeedbackEnabled.value,
@@ -364,19 +364,18 @@ class SettingsScreen extends StatelessWidget {
     if (file != null) {
       Get.snackbar(
         'Éxito',
-        'Backup exportado correctamente',
+        'backup_export_success'.t,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
       
-      // Compartir archivo
       await FileShareChannel.shareFile(file.path, 'application/json');
     } else {
       Get.snackbar(
         'Error',
-        'No se pudo exportar el backup',
+        'backup_export_error'.t,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -385,10 +384,8 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  // 🔥 MÉTODO ACTUALIZADO CON FILE_SELECTOR
   void _importBackup() async {
     try {
-      // Seleccionar archivo usando file_selector
       final typeGroup = XTypeGroup(
         label: 'JSON',
         extensions: ['json'],
@@ -404,12 +401,11 @@ class SettingsScreen extends StatelessWidget {
       
       final backupService = Get.find<BackupService>();
       
-      // Verificar información del backup
       final info = await backupService.getBackupInfo(File(file.path));
       if (info == null) {
         Get.snackbar(
           'Error',
-          'El archivo no es un backup válido',
+          'backup_invalid_file'.t,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -418,38 +414,38 @@ class SettingsScreen extends StatelessWidget {
         return;
       }
       
-      // Mostrar información antes de importar
+      // 🔥 CONFIRMAR IMPORTACIÓN CON LA INFORMACIÓN DEL BACKUP
       final confirm = await Get.dialog<bool>(
         AlertDialog(
-          title: const Text('Información del Backup'),
+          title: Text('backup_info_title'.t),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Versión: ${info['version']}'),
-              Text('Fecha: ${info['exportDate']}'),
+              Text('${'backup_info_version'.t}: ${info['version']}'),
+              Text('${'backup_info_date'.t}: ${info['exportDate']}'),
               const SizedBox(height: 8),
-              Text('Categorías: ${info['categories']}'),
-              Text('Transacciones: ${info['transactions']}'),
-              Text('Presupuestos: ${info['budgets']}'),
+              Text('${'backup_info_categories'.t}: ${info['categories']}'),
+              Text('${'backup_info_transactions'.t}: ${info['transactions']}'),
+              Text('${'backup_info_budgets'.t}: ${info['budgets']}'),
               const SizedBox(height: 16),
-              const Text(
-                '¿Deseas importar estos datos?',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'backup_confirm_message'.t,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Get.back(result: false),
-              child: const Text('Cancelar'),
+              child: Text('backup_cancel'.t),
             ),
             ElevatedButton(
               onPressed: () => Get.back(result: true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
               ),
-              child: const Text('Importar'),
+              child: Text('backup_import'.t),
             ),
           ],
         ),
@@ -460,27 +456,25 @@ class SettingsScreen extends StatelessWidget {
         return;
       }
       
-      // Importar datos
       final success = await backupService.importBackup(File(file.path));
       
       if (success) {
         Get.snackbar(
           'Éxito',
-          'Backup importado correctamente',
+          'backup_import_success'.t,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
         
-        // Recargar datos
         final homeController = Get.find<HomeController>();
         await homeController.loadData();
         
       } else {
         Get.snackbar(
           'Error',
-          'No se pudo importar el backup',
+          'backup_import_error'.t,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -490,7 +484,7 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Error al importar: $e',
+        'backup_import_error'.t,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

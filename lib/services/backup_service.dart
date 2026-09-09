@@ -9,6 +9,7 @@ import 'package:money_flow/services/budget_service.dart';
 import 'package:money_flow/models/transaction_model.dart';
 import 'package:money_flow/models/category_model.dart';
 import 'package:money_flow/models/budget_model.dart';
+import 'package:money_flow/l10n/translations.dart';
 import 'package:intl/intl.dart';
 
 class BackupService extends GetxService {
@@ -21,12 +22,10 @@ class BackupService extends GetxService {
     try {
       print('📦 Iniciando exportación de backup...');
 
-      // Obtener todos los datos
       final categories = await _categoryService.getAllCategories();
       final transactions = await _transactionService.getAllTransactions();
       final budgets = await _budgetService.getAllBudgets();
 
-      // Crear objeto de backup
       final backupData = {
         'version': '1.0',
         'exportDate': DateTime.now().toIso8601String(),
@@ -59,13 +58,36 @@ class BackupService extends GetxService {
         },
       };
 
-      // Convertir a JSON
       final jsonString = jsonEncode(backupData);
 
-      // Guardar archivo
-      final directory = await getApplicationDocumentsDirectory();
+      // Guardar en Descargas
+      String directoryPath;
+      final possiblePaths = [
+        '/storage/emulated/0/Download/',
+        '/sdcard/Download/',
+        '/storage/emulated/0/download/',
+        '/sdcard/download/',
+      ];
+      
+      Directory? downloadDir;
+      for (var path in possiblePaths) {
+        final dir = Directory(path);
+        if (await dir.exists()) {
+          downloadDir = dir;
+          break;
+        }
+      }
+      
+      if (downloadDir == null) {
+        final docsDir = await getApplicationDocumentsDirectory();
+        downloadDir = docsDir;
+        print('⚠️ Usando directorio de documentos: ${downloadDir.path}');
+      }
+      
+      print('📁 Directorio de backup: ${downloadDir.path}');
+      
       final fileName = 'backup_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.json';
-      final filePath = '${directory.path}/$fileName';
+      final filePath = '${downloadDir.path}/$fileName';
       final file = File(filePath);
       await file.writeAsString(jsonString, encoding: utf8);
 
@@ -86,19 +108,16 @@ class BackupService extends GetxService {
     try {
       print('📦 Iniciando importación de backup...');
 
-      // Leer archivo
       final jsonString = await file.readAsString(encoding: utf8);
       final Map<String, dynamic> backupData = jsonDecode(jsonString);
 
-      // Validar versión
       if (backupData['version'] != '1.0') {
         throw Exception('Versión de backup no compatible');
       }
 
       final data = backupData['data'];
 
-      // 🔥 IMPORTAR CATEGORÍAS
-      final categories = (data['categories'] as List).map((c) => Category(
+      final oldCategories = (data['categories'] as List).map((c) => Category(
         id: c['id'],
         name: c['name'],
         type: c['type'],
@@ -107,8 +126,7 @@ class BackupService extends GetxService {
         isDefault: c['isDefault'] ?? false,
       )).toList();
 
-      // 🔥 IMPORTAR TRANSACCIONES
-      final transactions = (data['transactions'] as List).map((t) => Transaction(
+      final oldTransactions = (data['transactions'] as List).map((t) => Transaction(
         id: t['id'],
         amount: t['amount'],
         type: t['type'],
@@ -118,8 +136,7 @@ class BackupService extends GetxService {
         isRecurring: t['isRecurring'] ?? false,
       )).toList();
 
-      // 🔥 IMPORTAR PRESUPUESTOS
-      final budgets = (data['budgets'] as List).map((b) => Budget(
+      final oldBudgets = (data['budgets'] as List).map((b) => Budget(
         id: b['id'],
         categoryId: b['categoryId'],
         limit: b['limit'],
@@ -128,76 +145,92 @@ class BackupService extends GetxService {
         updatedAt: b['updatedAt'] != null ? DateTime.parse(b['updatedAt']) : null,
       )).toList();
 
-      print('📊 Categorías a importar: ${categories.length}');
-      print('📊 Transacciones a importar: ${transactions.length}');
-      print('📊 Presupuestos a importar: ${budgets.length}');
+      print('📊 Categorías a importar: ${oldCategories.length}');
+      print('📊 Transacciones a importar: ${oldTransactions.length}');
+      print('📊 Presupuestos a importar: ${oldBudgets.length}');
 
-      // Confirmar importación
-      final confirm = await Get.dialog<bool>(
-        AlertDialog(
-          title: const Text('Confirmar importación'),
-          content: Text(
-            'Se importarán:\n'
-            '• ${categories.length} categorías\n'
-            '• ${transactions.length} transacciones\n'
-            '• ${budgets.length} presupuestos\n\n'
-            '¿Deseas continuar? Los datos actuales serán reemplazados.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(result: false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
-              child: const Text('Importar'),
-            ),
-          ],
-        ),
-      );
+      print('📥 Iniciando importación...');
 
-      if (confirm != true) {
-        print('❌ Importación cancelada por el usuario');
-        return false;
-      }
-
-      // 🔥 LIMPIAR DATOS EXISTENTES
+      // LIMPIAR DATOS EXISTENTES
       print('🧹 Eliminando datos existentes...');
       
-      // Eliminar transacciones
       final allTransactions = await _transactionService.getAllTransactions();
       for (var t in allTransactions) {
         await _transactionService.deleteTransaction(t.id!);
       }
 
-      // Eliminar presupuestos
       final allBudgets = await _budgetService.getAllBudgets();
       for (var b in allBudgets) {
         await _budgetService.deleteBudget(b.id!);
       }
 
-      // Eliminar categorías (excepto las por defecto del sistema)
       final allCategories = await _categoryService.getAllCategories();
       for (var c in allCategories) {
         await _categoryService.deleteCategory(c.id!);
       }
 
-      // 🔥 INSERTAR NUEVOS DATOS
-      print('📥 Insertando nuevos datos...');
-
-      for (var category in categories) {
-        await _categoryService.saveCategory(category);
+      // INSERTAR CATEGORÍAS
+      print('📥 Insertando categorías...');
+      final Map<int, int> categoryIdMap = {};
+      
+      for (var category in oldCategories) {
+        final oldId = category.id!;
+        final newCategory = Category(
+          name: category.name,
+          type: category.type,
+          icon: category.icon,
+          color: category.color,
+          isDefault: category.isDefault,
+        );
+        await _categoryService.saveCategory(newCategory);
+        final savedCategories = await _categoryService.getAllCategories();
+        final savedCategory = savedCategories.firstWhere(
+          (c) => c.name == category.name && c.type == category.type,
+          orElse: () => savedCategories.last,
+        );
+        categoryIdMap[oldId] = savedCategory.id!;
+        print('   ${category.name} (${category.type}): ID viejo $oldId → nuevo ${savedCategory.id}');
       }
 
-      for (var transaction in transactions) {
-        await _transactionService.saveTransaction(transaction);
+      // INSERTAR TRANSACCIONES
+      print('📥 Insertando transacciones...');
+      for (var transaction in oldTransactions) {
+        final newCategoryId = categoryIdMap[transaction.categoryId];
+        if (newCategoryId == null) {
+          print('   ⚠️ Saltando transacción: categoría ${transaction.categoryId} no encontrada');
+          continue;
+        }
+        
+        final newTransaction = Transaction(
+          amount: transaction.amount,
+          type: transaction.type,
+          categoryId: newCategoryId,
+          description: transaction.description,
+          date: transaction.date,
+          isRecurring: transaction.isRecurring,
+        );
+        await _transactionService.saveTransaction(newTransaction);
+        print('   ✅ ${transaction.description} - \$${transaction.amount}');
       }
 
-      for (var budget in budgets) {
-        await _budgetService.saveBudget(budget);
+      // INSERTAR PRESUPUESTOS
+      print('📥 Insertando presupuestos...');
+      for (var budget in oldBudgets) {
+        final newCategoryId = categoryIdMap[budget.categoryId];
+        if (newCategoryId == null) {
+          print('   ⚠️ Saltando presupuesto: categoría ${budget.categoryId} no encontrada');
+          continue;
+        }
+        
+        final newBudget = Budget(
+          categoryId: newCategoryId,
+          limit: budget.limit,
+          period: budget.period,
+          createdAt: budget.createdAt,
+          updatedAt: budget.updatedAt,
+        );
+        await _budgetService.saveBudget(newBudget);
+        print('   ✅ Presupuesto para categoría ID $newCategoryId: \$${budget.limit}');
       }
 
       print('✅ Importación completada exitosamente');
@@ -206,10 +239,9 @@ class BackupService extends GetxService {
     } catch (e) {
       print('❌ Error importando backup: $e');
       
-      // Mostrar mensaje de error
       Get.snackbar(
         'Error',
-        'No se pudo importar el backup: $e',
+        'backup_import_error'.t,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -223,17 +255,40 @@ class BackupService extends GetxService {
   // ==================== OBTENER INFORMACIÓN DEL BACKUP ====================
   Future<Map<String, dynamic>?> getBackupInfo(File file) async {
     try {
+      print('📄 Leyendo archivo: ${file.path}');
+      
+      // Verificar si el archivo existe
+      if (!await file.exists()) {
+        print('❌ El archivo no existe: ${file.path}');
+        return null;
+      }
+      
+      print('📄 Tamaño del archivo: ${await file.length()} bytes');
+      
       final jsonString = await file.readAsString(encoding: utf8);
+      print('📄 Contenido leído correctamente');
+      
       final Map<String, dynamic> backupData = jsonDecode(jsonString);
+      print('📄 JSON parseado correctamente');
+      
+      final categories = (backupData['data']?['categories'] as List?)?.length ?? 0;
+      final transactions = (backupData['data']?['transactions'] as List?)?.length ?? 0;
+      final budgets = (backupData['data']?['budgets'] as List?)?.length ?? 0;
+      
+      print('📊 Categorías encontradas: $categories');
+      print('📊 Transacciones encontradas: $transactions');
+      print('📊 Presupuestos encontrados: $budgets');
       
       return {
-        'version': backupData['version'],
-        'exportDate': backupData['exportDate'],
-        'categories': (backupData['data']['categories'] as List).length,
-        'transactions': (backupData['data']['transactions'] as List).length,
-        'budgets': (backupData['data']['budgets'] as List).length,
+        'version': backupData['version'] ?? '1.0',
+        'exportDate': backupData['exportDate'] ?? 'Fecha desconocida',
+        'categories': categories,
+        'transactions': transactions,
+        'budgets': budgets,
       };
     } catch (e) {
+      print('❌ Error leyendo backup: $e');
+      print('❌ Stacktrace: ${StackTrace.current}');
       return null;
     }
   }

@@ -26,6 +26,14 @@ class MainActivity : FlutterActivity() {
                         }
 
                         val file = File(filePath)
+                        
+                        // 🔥 VERIFICAR QUE EL ARCHIVO EXISTE
+                        if (!file.exists()) {
+                            result.error("FILE_NOT_FOUND", "El archivo no existe: $filePath", null)
+                            return@setMethodCallHandler
+                        }
+
+                        // 🔥 USAR FileProvider CON LA RUTA CORRECTA
                         val uri = FileProvider.getUriForFile(
                             this,
                             "${applicationContext.packageName}.fileprovider",
