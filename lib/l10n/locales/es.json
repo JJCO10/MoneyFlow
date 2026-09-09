@@ -149,5 +149,36 @@
   "stay_updated_title": "Mantente al día",
   "stay_updated_description": "Recibe alertas de presupuestos y resúmenes diarios para no perder el control.",
   "next": "Siguiente",
-  "start": "Comenzar"
+  "start": "Comenzar",
+
+  "notifications": "Notificaciones",
+  
+  "backup": "Backup",
+  "export_backup": "Exportar backup",
+  "export_backup_subtitle": "Guardar todos los datos en un archivo",
+  "import_backup": "Importar backup",
+  "import_backup_subtitle": "Restaurar datos desde un archivo",
+  
+  "interaction": "Interacción",
+  "haptic_feedback": "Vibración al tocar",
+  "haptic_feedback_subtitle": "Respuesta háptica en botones y acciones",
+  
+  "backup_export_success": "Backup exportado correctamente",
+  "backup_export_error": "No se pudo exportar el backup",
+  "backup_import_success": "Backup importado correctamente",
+  "backup_import_error": "No se pudo importar el backup",
+  "backup_invalid_file": "El archivo no es un backup válido",
+  "backup_confirm_import": "Confirmar importación",
+  "backup_confirm_message": "¿Deseas continuar? Los datos actuales serán reemplazados.",
+  "backup_cancel": "Cancelar",
+  "backup_import": "Importar",
+  "backup_importing": "Importando...",
+  "backup_exporting": "Exportando...",
+  "backup_info_title": "Información del Backup",
+  "backup_info_version": "Versión",
+  "backup_info_date": "Fecha",
+  "backup_info_categories": "Categorías",
+  "backup_info_transactions": "Transacciones",
+  "backup_info_budgets": "Presupuestos",
+  "backup_confirm_message_detail": "Se importarán:"
 }

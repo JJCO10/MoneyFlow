@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:money_flow/controllers/navigation_controller.dart';
+import 'package:money_flow/controllers/home_controller.dart'; // 🔥 AGREGAR
 import 'package:money_flow/theme/colors.dart';
 import 'package:money_flow/views/screens/add_transaction_screen.dart';
 import 'package:money_flow/views/screens/home_screen.dart';
@@ -63,11 +64,17 @@ class MainScaffold extends StatelessWidget {
       ),
       floatingActionButton: navController.selectedIndex.value == 0
           ? Container(
-              margin: const EdgeInsets.only(bottom: 0), // 🔥 MÁRGEN INFERIOR
+              margin: const EdgeInsets.only(bottom: 0),
               child: AnimatedButton(
                 onPressed: () async {
+                  // 🔥 ESPERAR EL RESULTADO
                   final result = await Get.to(() => AddTransactionScreen());
+                  
+                  // 🔥 SI SE GUARDÓ CORRECTAMENTE, RECARGAR DATOS
                   if (result == true) {
+                    final homeController = Get.find<HomeController>();
+                    await homeController.loadData();
+                    
                     Get.snackbar(
                       'info'.t,
                       'data_updated'.t,
