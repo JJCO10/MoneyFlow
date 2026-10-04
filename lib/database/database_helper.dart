@@ -23,14 +23,15 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     // Configurar sqflite para desktop
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
 
     // Obtener la ruta de la base de datos
     String dbPath;
-    
+
     if (kIsWeb) {
       dbPath = 'moneyflow.db';
       print('📁 Ruta DB Web: $dbPath (IndexedDB)');
@@ -48,7 +49,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       dbPath,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -57,7 +58,7 @@ class DatabaseHelper {
   // ==================== MIGRACIÓN ====================
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     print('🔄 Actualizando base de datos de versión $oldVersion a $newVersion');
-    
+
     if (oldVersion < 2) {
       try {
         await db.execute('''
@@ -77,12 +78,29 @@ class DatabaseHelper {
         rethrow;
       }
     }
+
+    if (oldVersion < 3) {
+      try {
+        await db.execute('''
+          ALTER TABLE transactions ADD COLUMN recurrenceType TEXT
+        ''');
+        await db.execute('''
+          ALTER TABLE transactions ADD COLUMN recurrenceEnd INTEGER
+        ''');
+        await db.execute('''
+          ALTER TABLE transactions ADD COLUMN parentId INTEGER
+        ''');
+        print('✅ Campos de recurrencia agregados a transactions');
+      } catch (e) {
+        print('❌ Error agregando campos de recurrencia: $e');
+        rethrow;
+      }
+    }
   }
 
   // ==================== CREACIÓN INICIAL ====================
   Future<void> _onCreate(Database db, int version) async {
     try {
-      // Crear tabla de categorías
       await db.execute('''
         CREATE TABLE categories (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +112,6 @@ class DatabaseHelper {
         )
       ''');
 
-      // Crear tabla de transacciones
       await db.execute('''
         CREATE TABLE transactions (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,11 +121,13 @@ class DatabaseHelper {
           description TEXT NOT NULL,
           date INTEGER NOT NULL,
           isRecurring INTEGER NOT NULL,
+          recurrenceType TEXT,
+          recurrenceEnd INTEGER,
+          parentId INTEGER,
           FOREIGN KEY (categoryId) REFERENCES categories (id) ON DELETE CASCADE
         )
       ''');
 
-      // Crear tabla de presupuestos
       await db.execute('''
         CREATE TABLE budgets (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,17 +140,20 @@ class DatabaseHelper {
         )
       ''');
 
-      // 🔥 CATEGORÍAS POR DEFECTO SEGÚN IDIOMA
-      final String languageCode = PlatformDispatcher.instance.locale.languageCode;
+      final String languageCode =
+          PlatformDispatcher.instance.locale.languageCode;
       final bool useSpanish = languageCode == 'es';
-      
-      final defaultCategories = useSpanish ? _getSpanishDefaultCategories() : _getEnglishDefaultCategories();
+
+      final defaultCategories = useSpanish
+          ? _getSpanishDefaultCategories()
+          : _getEnglishDefaultCategories();
 
       for (var category in defaultCategories) {
         await db.insert('categories', category.toMap());
       }
-      
-      print('✅ Base de datos creada con categorías por defecto en ${useSpanish ? "Español" : "Inglés"}');
+
+      print(
+          '✅ Base de datos creada con categorías por defecto en ${useSpanish ? "Español" : "Inglés"}');
     } catch (e) {
       print('❌ Error creando base de datos: $e');
       rethrow;
@@ -141,32 +163,132 @@ class DatabaseHelper {
   // 🔥 CATEGORÍAS EN ESPAÑOL
   List<Category> _getSpanishDefaultCategories() {
     return [
-      Category(name: 'Alimentación', type: 'expense', icon: '🍽️', color: 0xFFEF4444, isDefault: true),
-      Category(name: 'Transporte', type: 'expense', icon: '🚗', color: 0xFF3B82F6, isDefault: true),
-      Category(name: 'Compras', type: 'expense', icon: '🛍️', color: 0xFF8B5CF6, isDefault: true),
-      Category(name: 'Salud', type: 'expense', icon: '🏥', color: 0xFF10B981, isDefault: true),
-      Category(name: 'Educación', type: 'expense', icon: '📚', color: 0xFFF59E0B, isDefault: true),
-      Category(name: 'Entretenimiento', type: 'expense', icon: '🎬', color: 0xFFEC4899, isDefault: true),
-      Category(name: 'Hogar', type: 'expense', icon: '🏠', color: 0xFF14B8A6, isDefault: true),
-      Category(name: 'Salario', type: 'income', icon: '💰', color: 0xFF10B981, isDefault: true),
-      Category(name: 'Freelance', type: 'income', icon: '💻', color: 0xFF3B82F6, isDefault: true),
-      Category(name: 'Inversiones', type: 'income', icon: '📈', color: 0xFF8B5CF6, isDefault: true),
+      Category(
+          name: 'Alimentación',
+          type: 'expense',
+          icon: '🍽️',
+          color: 0xFFEF4444,
+          isDefault: true),
+      Category(
+          name: 'Transporte',
+          type: 'expense',
+          icon: '🚗',
+          color: 0xFF3B82F6,
+          isDefault: true),
+      Category(
+          name: 'Compras',
+          type: 'expense',
+          icon: '🛍️',
+          color: 0xFF8B5CF6,
+          isDefault: true),
+      Category(
+          name: 'Salud',
+          type: 'expense',
+          icon: '🏥',
+          color: 0xFF10B981,
+          isDefault: true),
+      Category(
+          name: 'Educación',
+          type: 'expense',
+          icon: '📚',
+          color: 0xFFF59E0B,
+          isDefault: true),
+      Category(
+          name: 'Entretenimiento',
+          type: 'expense',
+          icon: '🎬',
+          color: 0xFFEC4899,
+          isDefault: true),
+      Category(
+          name: 'Hogar',
+          type: 'expense',
+          icon: '🏠',
+          color: 0xFF14B8A6,
+          isDefault: true),
+      Category(
+          name: 'Salario',
+          type: 'income',
+          icon: '💰',
+          color: 0xFF10B981,
+          isDefault: true),
+      Category(
+          name: 'Freelance',
+          type: 'income',
+          icon: '💻',
+          color: 0xFF3B82F6,
+          isDefault: true),
+      Category(
+          name: 'Inversiones',
+          type: 'income',
+          icon: '📈',
+          color: 0xFF8B5CF6,
+          isDefault: true),
     ];
   }
 
   // 🔥 CATEGORÍAS EN INGLÉS
   List<Category> _getEnglishDefaultCategories() {
     return [
-      Category(name: 'Food', type: 'expense', icon: '🍽️', color: 0xFFEF4444, isDefault: true),
-      Category(name: 'Transport', type: 'expense', icon: '🚗', color: 0xFF3B82F6, isDefault: true),
-      Category(name: 'Shopping', type: 'expense', icon: '🛍️', color: 0xFF8B5CF6, isDefault: true),
-      Category(name: 'Health', type: 'expense', icon: '🏥', color: 0xFF10B981, isDefault: true),
-      Category(name: 'Education', type: 'expense', icon: '📚', color: 0xFFF59E0B, isDefault: true),
-      Category(name: 'Entertainment', type: 'expense', icon: '🎬', color: 0xFFEC4899, isDefault: true),
-      Category(name: 'Home', type: 'expense', icon: '🏠', color: 0xFF14B8A6, isDefault: true),
-      Category(name: 'Salary', type: 'income', icon: '💰', color: 0xFF10B981, isDefault: true),
-      Category(name: 'Freelance', type: 'income', icon: '💻', color: 0xFF3B82F6, isDefault: true),
-      Category(name: 'Investments', type: 'income', icon: '📈', color: 0xFF8B5CF6, isDefault: true),
+      Category(
+          name: 'Food',
+          type: 'expense',
+          icon: '🍽️',
+          color: 0xFFEF4444,
+          isDefault: true),
+      Category(
+          name: 'Transport',
+          type: 'expense',
+          icon: '🚗',
+          color: 0xFF3B82F6,
+          isDefault: true),
+      Category(
+          name: 'Shopping',
+          type: 'expense',
+          icon: '🛍️',
+          color: 0xFF8B5CF6,
+          isDefault: true),
+      Category(
+          name: 'Health',
+          type: 'expense',
+          icon: '🏥',
+          color: 0xFF10B981,
+          isDefault: true),
+      Category(
+          name: 'Education',
+          type: 'expense',
+          icon: '📚',
+          color: 0xFFF59E0B,
+          isDefault: true),
+      Category(
+          name: 'Entertainment',
+          type: 'expense',
+          icon: '🎬',
+          color: 0xFFEC4899,
+          isDefault: true),
+      Category(
+          name: 'Home',
+          type: 'expense',
+          icon: '🏠',
+          color: 0xFF14B8A6,
+          isDefault: true),
+      Category(
+          name: 'Salary',
+          type: 'income',
+          icon: '💰',
+          color: 0xFF10B981,
+          isDefault: true),
+      Category(
+          name: 'Freelance',
+          type: 'income',
+          icon: '💻',
+          color: 0xFF3B82F6,
+          isDefault: true),
+      Category(
+          name: 'Investments',
+          type: 'income',
+          icon: '📈',
+          color: 0xFF8B5CF6,
+          isDefault: true),
     ];
   }
 
@@ -214,7 +336,6 @@ class DatabaseHelper {
     );
   }
 
-  // 🔥 ELIMINAR CATEGORÍA (SIN RESTRICCIÓN DE isDefault)
   Future<int> deleteCategory(int id) async {
     final db = await database;
     return await db.delete(
@@ -225,20 +346,41 @@ class DatabaseHelper {
   }
 
   // ==================== MÉTODOS DE TRANSACCIONES ====================
+
+  // 🔥 OBTENER TODAS LAS TRANSACCIONES (INCLUYENDO PADRES E HIJAS)
+  // Para evitar duplicados, excluimos las transacciones padre recurrentes
+  // ya que sus hijas representan las transacciones reales
   Future<List<Transaction>> getAllTransactions() async {
+    final db = await database;
+    final result = await db.query(
+      'transactions',
+      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
+      where: 'parentId IS NOT NULL OR isRecurring = 0',
+      orderBy: 'date DESC',
+    );
+    return result.map((map) => Transaction.fromMap(map)).toList();
+  }
+
+  // 🔥 OBTENER TODAS LAS TRANSACCIONES (PARA BACKUP - INCLUYE PADRES)
+  Future<List<Transaction>> getAllTransactionsForBackup() async {
     final db = await database;
     final result = await db.query('transactions', orderBy: 'date DESC');
     return result.map((map) => Transaction.fromMap(map)).toList();
   }
 
-  Future<List<Transaction>> getTransactionsBetween(DateTime start, DateTime end) async {
+  Future<List<Transaction>> getTransactionsBetween(
+      DateTime start, DateTime end) async {
     final db = await database;
-    final startTimestamp = DateTime(start.year, start.month, start.day).millisecondsSinceEpoch;
-    final endTimestamp = DateTime(end.year, end.month, end.day, 23, 59, 59).millisecondsSinceEpoch;
-    
+    final startTimestamp =
+        DateTime(start.year, start.month, start.day).millisecondsSinceEpoch;
+    final endTimestamp = DateTime(end.year, end.month, end.day, 23, 59, 59)
+        .millisecondsSinceEpoch;
+
     final result = await db.query(
       'transactions',
-      where: 'date BETWEEN ? AND ?',
+      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
+      where:
+          'date BETWEEN ? AND ? AND (parentId IS NOT NULL OR isRecurring = 0)',
       whereArgs: [startTimestamp, endTimestamp],
       orderBy: 'date DESC',
     );
@@ -249,23 +391,51 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.query(
       'transactions',
-      where: 'categoryId = ?',
+      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
+      where: 'categoryId = ? AND (parentId IS NOT NULL OR isRecurring = 0)',
       whereArgs: [categoryId],
       orderBy: 'date DESC',
     );
     return result.map((map) => Transaction.fromMap(map)).toList();
   }
 
-  Future<double> getSumByTypeAndDate(String type, DateTime start, DateTime end) async {
+  // 🔥 OBTENER TRANSACCIONES RECURRENTES (SOLO PADRES)
+  Future<List<Transaction>> getRecurringTransactions() async {
     final db = await database;
-    final startTimestamp = DateTime(start.year, start.month, start.day).millisecondsSinceEpoch;
-    final endTimestamp = DateTime(end.year, end.month, end.day, 23, 59, 59).millisecondsSinceEpoch;
-    
+    final result = await db.query(
+      'transactions',
+      where: 'isRecurring = ? AND parentId IS NULL',
+      whereArgs: [1],
+      orderBy: 'date DESC',
+    );
+    return result.map((map) => Transaction.fromMap(map)).toList();
+  }
+
+  // 🔥 OBTENER TRANSACCIONES HIJAS DE UNA RECURRENTE
+  Future<List<Transaction>> getChildTransactions(int parentId) async {
+    final db = await database;
+    final result = await db.query(
+      'transactions',
+      where: 'parentId = ?',
+      whereArgs: [parentId],
+      orderBy: 'date DESC',
+    );
+    return result.map((map) => Transaction.fromMap(map)).toList();
+  }
+
+  Future<double> getSumByTypeAndDate(
+      String type, DateTime start, DateTime end) async {
+    final db = await database;
+    final startTimestamp =
+        DateTime(start.year, start.month, start.day).millisecondsSinceEpoch;
+    final endTimestamp = DateTime(end.year, end.month, end.day, 23, 59, 59)
+        .millisecondsSinceEpoch;
+
     final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE type = ? AND date BETWEEN ? AND ?',
+      'SELECT SUM(amount) as total FROM transactions WHERE type = ? AND date BETWEEN ? AND ? AND (parentId IS NOT NULL OR isRecurring = 0)',
       [type, startTimestamp, endTimestamp],
     );
-    
+
     return result.first['total'] as double? ?? 0.0;
   }
 
@@ -290,6 +460,21 @@ class DatabaseHelper {
       'transactions',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  // 🔥 ELIMINAR TRANSACCIÓN Y SUS HIJAS
+  Future<int> deleteTransactionWithChildren(int parentId) async {
+    final db = await database;
+    await db.delete(
+      'transactions',
+      where: 'parentId = ?',
+      whereArgs: [parentId],
+    );
+    return await db.delete(
+      'transactions',
+      where: 'id = ?',
+      whereArgs: [parentId],
     );
   }
 

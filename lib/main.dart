@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:money_flow/services/backup_service.dart';
 import 'package:money_flow/services/category_service.dart';
 import 'package:money_flow/services/notification_service.dart';
+import 'package:money_flow/services/recurrence_service.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/services/shared_preferences_service.dart';
 import 'package:money_flow/services/budget_service.dart';
@@ -19,21 +20,21 @@ import 'package:money_flow/l10n/translations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     print('🔄 Iniciando servicios...');
-    
+
     // 1. Preferencias primero
     await Get.putAsync(() => PreferencesService().init());
-    
+
     // 2. DETECTAR IDIOMA DEL SISTEMA
     final prefs = Get.find<PreferencesService>();
-    
+
     // Solo detectar si es la primera vez (idioma por defecto 'es')
     if (prefs.language == 'es' && prefs.themeMode == 'light') {
       final deviceLocale = PlatformDispatcher.instance.locale;
       final languageCode = deviceLocale.languageCode;
-      
+
       // 🔥 REGLAS DE IDIOMA:
       // - Si es español → español
       // - Si es inglés → inglés
@@ -44,38 +45,48 @@ void main() async {
       } else {
         // Inglés por defecto para cualquier otro idioma
         prefs.language = 'en';
-        print('🌐 Idioma detectado: ${languageCode.toUpperCase()} → configurado como Inglés (por defecto)');
+        print(
+            '🌐 Idioma detectado: ${languageCode.toUpperCase()} → configurado como Inglés (por defecto)');
       }
     }
-    
+
     // 3. Controlador de traducciones
     Get.put(AppTranslationsController());
     print('✅ AppTranslationsController inicializado');
-    
+
     // 4. Controlador de navegación
     Get.put(NavigationController());
     print('✅ NavigationController inicializado');
-    
+
     // 5. Servicios de base de datos
     Get.put(CategoryService());
     Get.put(TransactionService());
     Get.put(BudgetService());
-    
-    // 6. Servicios de exportación
+
+    // 🔥 6. SERVICIO DE RECURRENCIA (NUEVO)
+    Get.put(RecurrenceService());
+    print('✅ RecurrenceService inicializado');
+
+    // 7. Servicios de exportación
     Get.put(CsvExportService());
     Get.put(PdfExportService());
     Get.put(ExportService());
     Get.put(BackupService());
 
-    // 7. Servicio de notificaciones
+    // 8. Servicio de notificaciones
     await Get.putAsync(() => NotificationService().init());
-    
+
     print('✅ Servicios inicializados');
-    
+
     // Cargar categorías por defecto
     final categoryService = Get.find<CategoryService>();
     await categoryService.loadDefaultCategories();
     print('✅ Categorías por defecto cargadas');
+
+    // 🔥 PROCESAR TRANSACCIONES RECURRENTES PENDIENTES
+    final recurrenceService = Get.find<RecurrenceService>();
+    await recurrenceService.processRecurringTransactions();
+    print('✅ Transacciones recurrentes procesadas');
 
     // Solicitar permisos de notificación
     final notificationService = Get.find<NotificationService>();
@@ -90,9 +101,8 @@ void main() async {
         print('📊 Resumen diario programado');
       }
     }
-    
+
     runApp(const MyApp());
-    
   } catch (e, stacktrace) {
     print('❌ ERROR: $e');
     print('Stacktrace: $stacktrace');
@@ -108,9 +118,9 @@ class MyApp extends StatelessWidget {
     final prefs = Get.find<PreferencesService>();
     final translationsController = Get.find<AppTranslationsController>();
     final isDarkMode = prefs.themeMode == 'dark';
-    
+
     translationsController.currentLanguage.value = prefs.language;
-    
+
     return GetMaterialApp(
       title: 'MoneyFlow',
       theme: AppTheme.lightTheme,
@@ -119,7 +129,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
       locale: Locale(prefs.language),
-      fallbackLocale: const Locale('en'), // 🔥 CAMBIADO: fallback a inglés
+      fallbackLocale: const Locale('en'),
       translations: AppTranslations(),
       defaultTransition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
@@ -132,7 +142,7 @@ class MyApp extends StatelessWidget {
 
 class ErrorApp extends StatelessWidget {
   final String error;
-  
+
   const ErrorApp({super.key, required this.error});
 
   @override

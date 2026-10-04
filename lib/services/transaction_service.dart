@@ -9,7 +9,8 @@ class TransactionService extends GetxService {
     return await _db.getAllTransactions();
   }
 
-  Future<List<Transaction>> getTransactionsBetween(DateTime start, DateTime end) async {
+  Future<List<Transaction>> getTransactionsBetween(
+      DateTime start, DateTime end) async {
     return await _db.getTransactionsBetween(start, end);
   }
 
@@ -38,6 +39,8 @@ class TransactionService extends GetxService {
     return income - expense;
   }
 
+  // 🔥 SIMPLIFICADO: SOLO GUARDA LA TRANSACCIÓN PADRE
+  // La generación de hijas se hace dinámicamente con RecurrenceService
   Future<void> saveTransaction(Transaction transaction) async {
     if (transaction.id == null) {
       await _db.insertTransaction(transaction);
@@ -46,12 +49,31 @@ class TransactionService extends GetxService {
     }
   }
 
-  // <-- MÉTODO AGREGADO
   Future<void> updateTransaction(Transaction transaction) async {
     await _db.updateTransaction(transaction);
   }
 
   Future<void> deleteTransaction(int id) async {
-    await _db.deleteTransaction(id);
+    // Obtener la transacción para ver si es recurrente
+    final transactions = await _db.getAllTransactions();
+    final transaction = transactions.firstWhere((t) => t.id == id);
+
+    if (transaction.isRecurring) {
+      // Eliminar también las hijas
+      print('🗑️ Eliminando transacción recurrente y sus hijas');
+      await _db.deleteTransactionWithChildren(id);
+    } else {
+      await _db.deleteTransaction(id);
+    }
+  }
+
+  // 🔥 OBTENER TRANSACCIONES RECURRENTES (PADRES)
+  Future<List<Transaction>> getRecurringTransactions() async {
+    return await _db.getRecurringTransactions();
+  }
+
+  // 🔥 OBTENER TRANSACCIONES HIJAS DE UNA RECURRENTE
+  Future<List<Transaction>> getChildTransactions(int parentId) async {
+    return await _db.getChildTransactions(parentId);
   }
 }
