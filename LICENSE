@@ -1,21 +1,27 @@
-MIT License
+Copyright (c) 2026 Juan José Carmona Ortiz
 
-Copyright (c) 2024 Juan José Carmona Ortiz
+Todos los derechos reservados.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Este software y su código fuente son propiedad exclusiva de Juan José Carmona Ortiz.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Queda estrictamente prohibido:
+- Copiar, modificar o distribuir este software o su código fuente.
+- Usar este software con fines comerciales sin autorización expresa.
+- Sublicenciar o vender copias del software.
+- Realizar ingeniería inversa, descompilar o desensamblar el software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Cualquier uso no autorizado de este software constituye una violación
+de los derechos de autor y será perseguido legalmente.
+
+Para obtener permisos de uso, contactar a:
+Juan José Carmona Ortiz
+Email: juanjosecarmonaortiz@gmail.com
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE
+COMERCIABILIDAD, IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN.
+EN NINGÚN CASO LOS AUTORES O TITULARES DE LOS DERECHOS DE AUTOR SERÁN
+RESPONSABLES DE CUALQUIER RECLAMO, DAÑO O OTRA RESPONSABILIDAD, YA SEA
+EN UNA ACCIÓN DE CONTRATO, AGRAVIO O DE OTRO TIPO, QUE SURJA DE,
+FUERA DE O EN CONEXIÓN CON EL SOFTWARE O EL USO U OTRO TIPO DE ACCIONES
+EN EL SOFTWARE.
