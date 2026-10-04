@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart'; // 🔥 AGREGADO
 import 'package:money_flow/controllers/home_controller.dart';
 import 'package:money_flow/controllers/settings_controller.dart';
 import 'package:money_flow/services/export_service.dart';
@@ -14,24 +15,40 @@ import 'package:money_flow/l10n/translations.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  // 🔥 MÉTODO PARA OBTENER LA VERSIÓN DINÁMICAMENTE
+  Future<String> _getAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return '${packageInfo.version}'; //+${packageInfo.buildNumber}
+    } catch (e) {
+      print('❌ Error obteniendo versión: $e');
+      return '1.0.0';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(SettingsController());
     final exportService = Get.find<ExportService>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppColors.darkCard : Colors.white;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final textLight = isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
-    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
-    
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textLight =
+        isDark ? AppColors.darkTextLight : AppColors.lightTextLight;
+    final shadowColor =
+        isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.1);
+
     final selectedMonth = DateTime.now().obs;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('settings_title'.t),
         backgroundColor: Colors.transparent,
-        foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+        foregroundColor:
+            isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -45,23 +62,23 @@ class SettingsScreen extends StatelessWidget {
               shadowColor: shadowColor,
               children: [
                 Obx(() => SwitchListTile(
-                  title: Text(
-                    'dark_mode'.t,
-                    style: TextStyle(color: textPrimary),
-                  ),
-                  subtitle: Text(
-                    'dark_mode_subtitle'.t,
-                    style: TextStyle(color: textSecondary),
-                  ),
-                  value: controller.isDarkMode.value,
-                  onChanged: controller.toggleTheme,
-                  activeColor: AppColors.primary,
-                )),
+                      title: Text(
+                        'dark_mode'.t,
+                        style: TextStyle(color: textPrimary),
+                      ),
+                      subtitle: Text(
+                        'dark_mode_subtitle'.t,
+                        style: TextStyle(color: textSecondary),
+                      ),
+                      value: controller.isDarkMode.value,
+                      onChanged: controller.toggleTheme,
+                      activeColor: AppColors.primary,
+                    )),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // ==================== IDIOMA ====================
             _buildSection(
               title: 'language'.t,
@@ -69,35 +86,36 @@ class SettingsScreen extends StatelessWidget {
               shadowColor: shadowColor,
               children: [
                 Obx(() => DropdownButtonFormField<String>(
-                  value: controller.selectedLanguage.value,
-                  dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
-                  style: TextStyle(color: textPrimary),
-                  decoration: InputDecoration(
-                    labelText: 'select_language'.t,
-                    labelStyle: TextStyle(color: textSecondary),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: controller.languages.map((lang) {
-                    return DropdownMenuItem<String>(
-                      value: lang['code'],
-                      child: Text(
-                        lang['name']!,
-                        style: TextStyle(color: textPrimary),
+                      value: controller.selectedLanguage.value,
+                      dropdownColor:
+                          isDark ? AppColors.darkSurface : Colors.white,
+                      style: TextStyle(color: textPrimary),
+                      decoration: InputDecoration(
+                        labelText: 'select_language'.t,
+                        labelStyle: TextStyle(color: textSecondary),
+                        border: const OutlineInputBorder(),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.changeLanguage(value);
-                    }
-                  },
-                )),
+                      items: controller.languages.map((lang) {
+                        return DropdownMenuItem<String>(
+                          value: lang['code'],
+                          child: Text(
+                            lang['name']!,
+                            style: TextStyle(color: textPrimary),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          controller.changeLanguage(value);
+                        }
+                      },
+                    )),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
-            // ==================== NOTIFICACIONES (TRADUCIDO) ====================
+
+            // ==================== NOTIFICACIONES ====================
             _buildSection(
               title: 'notifications'.t,
               cardBg: cardBg,
@@ -114,12 +132,12 @@ class SettingsScreen extends StatelessWidget {
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
-                    value: controller.budgetAlertsEnabled.value,
-                    onChanged: (value) {
-                      controller.toggleBudgetAlerts(value);
-                    },
-                    activeColor: AppColors.primary,
-                  )),
+                        value: controller.budgetAlertsEnabled.value,
+                        onChanged: (value) {
+                          controller.toggleBudgetAlerts(value);
+                        },
+                        activeColor: AppColors.primary,
+                      )),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -133,18 +151,18 @@ class SettingsScreen extends StatelessWidget {
                     style: TextStyle(color: textSecondary),
                   ),
                   trailing: Obx(() => Switch(
-                    value: controller.dailySummaryEnabled.value,
-                    onChanged: (value) {
-                      controller.toggleDailySummary(value);
-                    },
-                    activeColor: AppColors.primary,
-                  )),
+                        value: controller.dailySummaryEnabled.value,
+                        onChanged: (value) {
+                          controller.toggleDailySummary(value);
+                        },
+                        activeColor: AppColors.primary,
+                      )),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // ==================== EXPORTAR DATOS ====================
             _buildSection(
               title: 'export_title'.t,
@@ -152,39 +170,41 @@ class SettingsScreen extends StatelessWidget {
               shadowColor: shadowColor,
               children: [
                 Obx(() => ListTile(
-                  leading: Icon(Icons.calendar_month, color: AppColors.primary),
-                  title: Text(
-                    'select_month'.t,
-                    style: TextStyle(color: textPrimary),
-                  ),
-                  subtitle: Text(
-                    DateFormat('MMMM yyyy').format(selectedMonth.value),
-                    style: TextStyle(color: textSecondary),
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: selectedMonth.value,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                      initialDatePickerMode: DatePickerMode.year,
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: const ColorScheme.light(
-                              primary: AppColors.primary,
-                            ),
-                          ),
-                          child: child!,
+                      leading:
+                          Icon(Icons.calendar_month, color: AppColors.primary),
+                      title: Text(
+                        'select_month'.t,
+                        style: TextStyle(color: textPrimary),
+                      ),
+                      subtitle: Text(
+                        DateFormat('MMMM yyyy').format(selectedMonth.value),
+                        style: TextStyle(color: textSecondary),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: textLight),
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedMonth.value,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          initialDatePickerMode: DatePickerMode.year,
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.primary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
                         );
+                        if (date != null) {
+                          selectedMonth.value = date;
+                        }
                       },
-                    );
-                    if (date != null) {
-                      selectedMonth.value = date;
-                    }
-                  },
-                )),
+                    )),
                 const Divider(height: 1),
                 ListTile(
                   leading: Icon(Icons.picture_as_pdf, color: AppColors.primary),
@@ -196,7 +216,8 @@ class SettingsScreen extends StatelessWidget {
                     'export_pdf_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  trailing:
+                      Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
                   onTap: () => exportService.exportToPDF(selectedMonth.value),
                 ),
                 const Divider(height: 1),
@@ -210,7 +231,8 @@ class SettingsScreen extends StatelessWidget {
                     'export_csv_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  trailing:
+                      Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
                   onTap: () => exportService.exportToCSV(selectedMonth.value),
                 ),
               ],
@@ -218,7 +240,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ==================== BACKUP (TRADUCIDO) ====================
+            // ==================== BACKUP ====================
             _buildSection(
               title: 'backup'.t,
               cardBg: cardBg,
@@ -234,7 +256,8 @@ class SettingsScreen extends StatelessWidget {
                     'export_backup_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  trailing:
+                      Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
                   onTap: _exportBackup,
                 ),
                 const Divider(height: 1),
@@ -248,7 +271,8 @@ class SettingsScreen extends StatelessWidget {
                     'import_backup_subtitle'.t,
                     style: TextStyle(color: textSecondary),
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
+                  trailing:
+                      Icon(Icons.arrow_forward_ios, size: 16, color: textLight),
                   onTap: _importBackup,
                 ),
               ],
@@ -256,47 +280,53 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ==================== INTERACCIÓN (TRADUCIDO) ====================
+            // ==================== INTERACCIÓN ====================
             _buildSection(
               title: 'interaction'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
                 Obx(() => SwitchListTile(
-                  title: Text(
-                    'haptic_feedback'.t,
-                    style: TextStyle(color: textPrimary),
-                  ),
-                  subtitle: Text(
-                    'haptic_feedback_subtitle'.t,
-                    style: TextStyle(color: textSecondary),
-                  ),
-                  value: controller.hapticFeedbackEnabled.value,
-                  onChanged: (value) {
-                    controller.toggleHapticFeedback(value);
-                  },
-                  activeColor: AppColors.primary,
-                )),
+                      title: Text(
+                        'haptic_feedback'.t,
+                        style: TextStyle(color: textPrimary),
+                      ),
+                      subtitle: Text(
+                        'haptic_feedback_subtitle'.t,
+                        style: TextStyle(color: textSecondary),
+                      ),
+                      value: controller.hapticFeedbackEnabled.value,
+                      onChanged: (value) {
+                        controller.toggleHapticFeedback(value);
+                      },
+                      activeColor: AppColors.primary,
+                    )),
               ],
             ),
 
             const SizedBox(height: 16),
-            
+
             // ==================== ACERCA DE ====================
             _buildSection(
               title: 'about'.t,
               cardBg: cardBg,
               shadowColor: shadowColor,
               children: [
+                // 🔥 VERSIÓN DINÁMICA
                 ListTile(
                   leading: Icon(Icons.info, color: AppColors.primary),
                   title: Text(
                     'version'.t,
                     style: TextStyle(color: textPrimary),
                   ),
-                  subtitle: Text(
-                    '1.0.0',
-                    style: TextStyle(color: textSecondary),
+                  subtitle: FutureBuilder<String>(
+                    future: _getAppVersion(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? '...',
+                        style: TextStyle(color: textSecondary),
+                      );
+                    },
                   ),
                 ),
                 ListTile(
@@ -317,7 +347,7 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildSection({
     required String title,
     required List<Widget> children,
@@ -360,7 +390,7 @@ class SettingsScreen extends StatelessWidget {
   void _exportBackup() async {
     final backupService = Get.find<BackupService>();
     final file = await backupService.exportBackup();
-    
+
     if (file != null) {
       Get.snackbar(
         'Éxito',
@@ -370,7 +400,7 @@ class SettingsScreen extends StatelessWidget {
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
-      
+
       await FileShareChannel.shareFile(file.path, 'application/json');
     } else {
       Get.snackbar(
@@ -391,16 +421,16 @@ class SettingsScreen extends StatelessWidget {
         extensions: ['json'],
         mimeTypes: ['application/json'],
       );
-      
+
       final file = await openFile(acceptedTypeGroups: [typeGroup]);
-      
+
       if (file == null) {
         print('❌ Selección de archivo cancelada');
         return;
       }
-      
+
       final backupService = Get.find<BackupService>();
-      
+
       final info = await backupService.getBackupInfo(File(file.path));
       if (info == null) {
         Get.snackbar(
@@ -413,8 +443,8 @@ class SettingsScreen extends StatelessWidget {
         );
         return;
       }
-      
-      // 🔥 CONFIRMAR IMPORTACIÓN CON LA INFORMACIÓN DEL BACKUP
+
+      // CONFIRMAR IMPORTACIÓN
       final confirm = await Get.dialog<bool>(
         AlertDialog(
           title: Text('backup_info_title'.t),
@@ -450,14 +480,14 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
       );
-      
+
       if (confirm != true) {
         print('❌ Importación cancelada por el usuario');
         return;
       }
-      
+
       final success = await backupService.importBackup(File(file.path));
-      
+
       if (success) {
         Get.snackbar(
           'Éxito',
@@ -467,10 +497,9 @@ class SettingsScreen extends StatelessWidget {
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
-        
+
         final homeController = Get.find<HomeController>();
         await homeController.loadData();
-        
       } else {
         Get.snackbar(
           'Error',

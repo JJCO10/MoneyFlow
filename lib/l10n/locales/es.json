@@ -12,21 +12,21 @@
   "export_title": "Exportar Datos",
   "recent_transactions": "Transacciones Recientes",
   "transactions_day": "Transacciones del Día",
-  
+
   "income": "Ingresos",
   "expense": "Gastos",
   "balance": "Balance",
   "total_income": "Total Ingresos",
   "total_expense": "Total Gastos",
   "total_balance": "Balance Total",
-  
+
   "amount": "Monto",
   "description": "Descripción",
   "category": "Categoría",
   "date": "Fecha",
   "type": "Tipo",
   "period": "Período",
-  
+
   "save": "Guardar",
   "cancel": "Cancelar",
   "delete": "Eliminar",
@@ -37,20 +37,20 @@
   "filter": "Filtrar",
   "clear_filters": "Limpiar filtros",
   "view_all": "Ver todas",
-  
+
   "income_expense_chart": "Ingresos vs Gastos",
   "category_pie_chart": "Distribución de Gastos por Categoría",
   "balance_line_chart": "Evolución del Balance Diario",
-  
+
   "month": "Mes",
   "select_month": "Seleccionar Mes",
   "report_generated": "Reporte generado automáticamente por MoneyFlow",
-  
+
   "export_pdf": "Exportar a PDF",
   "export_csv": "Exportar a Excel (CSV)",
   "export_pdf_subtitle": "Reporte mensual con resumen y gráficos",
   "export_csv_subtitle": "Datos en formato tabular",
-  
+
   "appearance": "Apariencia",
   "dark_mode": "Modo Oscuro",
   "dark_mode_subtitle": "Cambiar tema de la app",
@@ -58,14 +58,14 @@
   "default_currency": "Moneda predeterminada",
   "language": "Idioma",
   "select_language": "Seleccionar idioma",
-  
+
   "budget_management": "Gestionar Presupuestos",
   "budget_management_subtitle": "Establecer límites por categoría",
-  
+
   "about": "Acerca de",
   "version": "Versión",
   "app_description": "Tu app financiera personal",
-  
+
   "no_data": "No hay datos",
   "no_transactions": "No hay transacciones",
   "no_transactions_message": "No hay transacciones este mes",
@@ -75,12 +75,12 @@
   "add_category_message": "Presiona el botón + para agregar una",
   "no_budgets": "No hay presupuestos",
   "add_budget_message": "Presiona el botón + para crear uno",
-  
+
   "success": "Éxito",
   "error": "Error",
   "info": "Información",
   "warning": "Advertencia",
-  
+
   "transaction_saved": "Transacción guardada correctamente",
   "transaction_updated": "Transacción actualizada correctamente",
   "transaction_deleted": "Transacción eliminada correctamente",
@@ -90,7 +90,7 @@
   "budget_deleted": "Presupuesto eliminado correctamente",
   "export_success": "Archivo exportado correctamente",
   "data_updated": "Los datos se han actualizado",
-  
+
   "over_budget": "¡Excedido!",
   "remaining": "Restante",
   "exceeded_by": "Excedido por",
@@ -98,14 +98,14 @@
   "limit": "Límite",
   "monthly": "Mensual",
   "weekly": "Semanal",
-  
+
   "income_type": "Ingreso",
   "expense_type": "Gasto",
   "all_types": "Todos",
-  
+
   "default": "Por defecto",
   "set_budget": "Establecer presupuesto",
-  
+
   "no_category": "Sin categoría",
 
   "notifications_title": "Notificaciones",
@@ -152,17 +152,17 @@
   "start": "Comenzar",
 
   "notifications": "Notificaciones",
-  
+
   "backup": "Backup",
   "export_backup": "Exportar backup",
   "export_backup_subtitle": "Guardar todos los datos en un archivo",
   "import_backup": "Importar backup",
   "import_backup_subtitle": "Restaurar datos desde un archivo",
-  
+
   "interaction": "Interacción",
   "haptic_feedback": "Vibración al tocar",
   "haptic_feedback_subtitle": "Respuesta háptica en botones y acciones",
-  
+
   "backup_export_success": "Backup exportado correctamente",
   "backup_export_error": "No se pudo exportar el backup",
   "backup_import_success": "Backup importado correctamente",
@@ -180,5 +180,18 @@
   "backup_info_categories": "Categorías",
   "backup_info_transactions": "Transacciones",
   "backup_info_budgets": "Presupuestos",
-  "backup_confirm_message_detail": "Se importarán:"
+  "backup_confirm_message_detail": "Se importarán:",
+
+  "recurring_transaction": "Transacción recurrente",
+  "recurring_transaction_subtitle": "Se repetirá automáticamente",
+  "recurrence_frequency": "Frecuencia",
+  "yearly": "Anual",
+  "has_end_date": "Tiene fecha de fin",
+  "end_date": "Fecha de fin",
+
+  "confirm_delete_transaction": "¿Estás seguro de eliminar esta transacción?",
+  "generated_transaction_message": "Esta transacción fue generada automáticamente por una transacción recurrente.\n\n¿Qué deseas hacer?",
+  "delete_only_this": "Eliminar solo esta",
+  "delete_all_recurrence": "Eliminar toda la recurrencia",
+  "delete_recurring_transaction": "¿Eliminar esta transacción recurrente? También se eliminarán todas las transacciones generadas."
 }
