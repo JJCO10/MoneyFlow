@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:money_flow/database/database_helper.dart';
 import 'package:money_flow/services/transaction_service.dart';
 import 'package:money_flow/models/transaction_model.dart';
 
 class RecurrenceService extends GetxService {
   final TransactionService _transactionService = Get.find();
+  final DatabaseHelper _db = DatabaseHelper();
 
   // 🔥 VERIFICAR Y GENERAR TRANSACCIONES PENDIENTES
   Future<void> processRecurringTransactions() async {
@@ -57,7 +59,17 @@ class RecurrenceService extends GetxService {
       existingDates.add(dateKey);
     }
 
+    // 🔥 OBTENER LAS FECHAS ELIMINADAS MANUALMENTE
+    final deletedDates = await _db.getDeletedDates(parent.id!);
+    final deletedDatesSet = <String>{};
+    for (var deletedDate in deletedDates) {
+      final dateKey =
+          '${deletedDate.year}-${deletedDate.month}-${deletedDate.day}';
+      deletedDatesSet.add(dateKey);
+    }
+
     print('📅 Fechas ya generadas: ${existingDates.length}');
+    print('🗑️ Fechas eliminadas manualmente: ${deletedDatesSet.length}');
 
     // 🔥 CALCULAR FECHA DE FIN
     final endDate = parent.recurrenceEnd ??
@@ -82,8 +94,9 @@ class RecurrenceService extends GetxService {
         final dateKey =
             '${currentDate.year}-${currentDate.month}-${currentDate.day}';
 
-        // 🔥 SOLO GENERAR SI NO EXISTE
-        if (!existingDates.contains(dateKey)) {
+        // 🔥 SOLO GENERAR SI NO EXISTE Y NO ESTÁ EN LA LISTA DE ELIMINADAS
+        if (!existingDates.contains(dateKey) &&
+            !deletedDatesSet.contains(dateKey)) {
           final transaction = Transaction(
             amount: parent.amount,
             type: parent.type,

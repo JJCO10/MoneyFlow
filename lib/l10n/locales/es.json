@@ -187,5 +187,11 @@
   "recurrence_frequency": "Frecuencia",
   "yearly": "Anual",
   "has_end_date": "Tiene fecha de fin",
-  "end_date": "Fecha de fin"
+  "end_date": "Fecha de fin",
+
+  "confirm_delete_transaction": "¿Estás seguro de eliminar esta transacción?",
+  "generated_transaction_message": "Esta transacción fue generada automáticamente por una transacción recurrente.\n\n¿Qué deseas hacer?",
+  "delete_only_this": "Eliminar solo esta",
+  "delete_all_recurrence": "Eliminar toda la recurrencia",
+  "delete_recurring_transaction": "¿Eliminar esta transacción recurrente? También se eliminarán todas las transacciones generadas."
 }

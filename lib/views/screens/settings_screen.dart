@@ -19,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
   Future<String> _getAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      return '${packageInfo.version}+${packageInfo.buildNumber}';
+      return '${packageInfo.version}'; //+${packageInfo.buildNumber}
     } catch (e) {
       print('❌ Error obteniendo versión: $e');
       return '1.0.0';

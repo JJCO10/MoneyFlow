@@ -49,7 +49,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       dbPath,
-      version: 3,
+      version: 4, // 🔥 VERSIÓN 4: Tabla deleted_dates
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -96,6 +96,24 @@ class DatabaseHelper {
         rethrow;
       }
     }
+
+    // 🔥 MIGRACIÓN A VERSIÓN 4: Tabla para fechas eliminadas
+    if (oldVersion < 4) {
+      try {
+        await db.execute('''
+          CREATE TABLE deleted_dates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            parentId INTEGER NOT NULL,
+            date INTEGER NOT NULL,
+            FOREIGN KEY (parentId) REFERENCES transactions (id) ON DELETE CASCADE
+          )
+        ''');
+        print('✅ Tabla deleted_dates creada exitosamente');
+      } catch (e) {
+        print('❌ Error creando tabla deleted_dates: $e');
+        rethrow;
+      }
+    }
   }
 
   // ==================== CREACIÓN INICIAL ====================
@@ -137,6 +155,16 @@ class DatabaseHelper {
           createdAt INTEGER NOT NULL,
           updatedAt INTEGER,
           FOREIGN KEY (categoryId) REFERENCES categories (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // 🔥 TABLA PARA FECHAS ELIMINADAS
+      await db.execute('''
+        CREATE TABLE deleted_dates (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          parentId INTEGER NOT NULL,
+          date INTEGER NOT NULL,
+          FOREIGN KEY (parentId) REFERENCES transactions (id) ON DELETE CASCADE
         )
       ''');
 
@@ -347,14 +375,23 @@ class DatabaseHelper {
 
   // ==================== MÉTODOS DE TRANSACCIONES ====================
 
-  // 🔥 OBTENER TODAS LAS TRANSACCIONES (INCLUYENDO PADRES E HIJAS)
-  // Para evitar duplicados, excluimos las transacciones padre recurrentes
-  // ya que sus hijas representan las transacciones reales
+  // 🔥 OBTENER TRANSACCIÓN POR ID
+  Future<Transaction?> getTransactionById(int id) async {
+    final db = await database;
+    final result = await db.query(
+      'transactions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (result.isEmpty) return null;
+    return Transaction.fromMap(result.first);
+  }
+
+  // 🔥 OBTENER TODAS LAS TRANSACCIONES (EXCLUYENDO PADRES RECURRENTES)
   Future<List<Transaction>> getAllTransactions() async {
     final db = await database;
     final result = await db.query(
       'transactions',
-      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
       where: 'parentId IS NOT NULL OR isRecurring = 0',
       orderBy: 'date DESC',
     );
@@ -378,7 +415,6 @@ class DatabaseHelper {
 
     final result = await db.query(
       'transactions',
-      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
       where:
           'date BETWEEN ? AND ? AND (parentId IS NOT NULL OR isRecurring = 0)',
       whereArgs: [startTimestamp, endTimestamp],
@@ -391,7 +427,6 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.query(
       'transactions',
-      // 🔥 EXCLUIR LAS TRANSACCIONES PADRE RECURRENTES
       where: 'categoryId = ? AND (parentId IS NOT NULL OR isRecurring = 0)',
       whereArgs: [categoryId],
       orderBy: 'date DESC',
@@ -466,14 +501,58 @@ class DatabaseHelper {
   // 🔥 ELIMINAR TRANSACCIÓN Y SUS HIJAS
   Future<int> deleteTransactionWithChildren(int parentId) async {
     final db = await database;
+    // Primero eliminar los registros de fechas eliminadas
+    await db.delete(
+      'deleted_dates',
+      where: 'parentId = ?',
+      whereArgs: [parentId],
+    );
+    // Eliminar las hijas
     await db.delete(
       'transactions',
       where: 'parentId = ?',
       whereArgs: [parentId],
     );
+    // Eliminar el padre
     return await db.delete(
       'transactions',
       where: 'id = ?',
+      whereArgs: [parentId],
+    );
+  }
+
+  // ==================== 🔥 MÉTODOS DE FECHAS ELIMINADAS ====================
+
+  // Registrar una fecha como eliminada (para que no se regenere)
+  Future<void> registerDeletedDate(int parentId, DateTime date) async {
+    final db = await database;
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    await db.insert('deleted_dates', {
+      'parentId': parentId,
+      'date': dateOnly.millisecondsSinceEpoch,
+    });
+    print('📝 Fecha registrada como eliminada: $dateOnly (parent: $parentId)');
+  }
+
+  // Obtener todas las fechas eliminadas de un padre
+  Future<List<DateTime>> getDeletedDates(int parentId) async {
+    final db = await database;
+    final result = await db.query(
+      'deleted_dates',
+      where: 'parentId = ?',
+      whereArgs: [parentId],
+    );
+    return result
+        .map((map) => DateTime.fromMillisecondsSinceEpoch(map['date'] as int))
+        .toList();
+  }
+
+  // Limpiar fechas eliminadas de un padre (al eliminar la recurrencia completa)
+  Future<void> clearDeletedDates(int parentId) async {
+    final db = await database;
+    await db.delete(
+      'deleted_dates',
+      where: 'parentId = ?',
       whereArgs: [parentId],
     );
   }

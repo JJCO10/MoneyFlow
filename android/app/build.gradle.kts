@@ -28,8 +28,8 @@ android {
         applicationId = "com.example.money_flow"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         multiDexEnabled = true
     }
 

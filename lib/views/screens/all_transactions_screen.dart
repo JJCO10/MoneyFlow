@@ -13,7 +13,7 @@ class AllTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(AllTransactionsController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('transactions_title'.t),
@@ -39,7 +39,7 @@ class AllTransactionsScreen extends StatelessWidget {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         return Column(
           children: [
             _buildSearchBar(controller, isDark),
@@ -52,16 +52,18 @@ class AllTransactionsScreen extends StatelessWidget {
       }),
     );
   }
-  
+
   Widget _buildSearchBar(AllTransactionsController controller, bool isDark) {
-    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textColor =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final fillColor = isDark ? AppColors.darkSurface : Colors.grey[100];
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: TextField(
         style: TextStyle(
-          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+          color:
+              isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
         ),
         decoration: InputDecoration(
           hintText: 'search'.t,
@@ -90,12 +92,12 @@ class AllTransactionsScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildSummary(AllTransactionsController controller, bool isDark) {
     final income = controller.getTotalIncome();
     final expense = controller.getTotalExpense();
     final balance = controller.getBalance();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -130,10 +132,12 @@ class AllTransactionsScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildSummaryChip(String label, String amount, Color color, bool isDark) {
-    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    
+
+  Widget _buildSummaryChip(
+      String label, String amount, Color color, bool isDark) {
+    final textColor =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
@@ -162,12 +166,13 @@ class AllTransactionsScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildTransactionList(AllTransactionsController controller) {
     final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
-    final textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textColor =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final iconColor = isDark ? Colors.grey[600] : Colors.grey[300];
-    
+
     if (controller.filteredTransactions.isEmpty) {
       return Center(
         child: Column(
@@ -193,7 +198,7 @@ class AllTransactionsScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: controller.filteredTransactions.length,
@@ -205,8 +210,8 @@ class AllTransactionsScreen extends StatelessWidget {
           categoryIcon: controller.getCategoryIcon(transaction.categoryId),
           onTap: () async {
             final result = await Get.to(() => EditTransactionScreen(
-              transaction: transaction,
-            ));
+                  transaction: transaction,
+                ));
             if (result == true) {
               controller.loadData();
             }
@@ -216,12 +221,15 @@ class AllTransactionsScreen extends StatelessWidget {
       },
     );
   }
-  
-  void _showFilterDialog(BuildContext context, AllTransactionsController controller) {
+
+  void _showFilterDialog(
+      BuildContext context, AllTransactionsController controller) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -250,7 +258,7 @@ class AllTransactionsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Filtro por tipo
                   Text(
                     'type'.t,
@@ -261,34 +269,34 @@ class AllTransactionsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Obx(() => Row(
-                    children: [
-                      _buildFilterChip(
-                        'all_types'.t,
-                        'all',
-                        controller.selectedType.value,
-                        () => controller.filterByType('all'),
-                        isDark,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildFilterChip(
-                        'income_type'.t,
-                        'income',
-                        controller.selectedType.value,
-                        () => controller.filterByType('income'),
-                        isDark,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildFilterChip(
-                        'expense_type'.t,
-                        'expense',
-                        controller.selectedType.value,
-                        () => controller.filterByType('expense'),
-                        isDark,
-                      ),
-                    ],
-                  )),
+                        children: [
+                          _buildFilterChip(
+                            'all_types'.t,
+                            'all',
+                            controller.selectedType.value,
+                            () => controller.filterByType('all'),
+                            isDark,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            'income_type'.t,
+                            'income',
+                            controller.selectedType.value,
+                            () => controller.filterByType('income'),
+                            isDark,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            'expense_type'.t,
+                            'expense',
+                            controller.selectedType.value,
+                            () => controller.filterByType('expense'),
+                            isDark,
+                          ),
+                        ],
+                      )),
                   const SizedBox(height: 16),
-                  
+
                   // Filtro por categoría
                   Text(
                     'category'.t,
@@ -308,7 +316,7 @@ class AllTransactionsScreen extends StatelessWidget {
                           ),
                         );
                       }
-                      
+
                       return SingleChildScrollView(
                         controller: scrollController,
                         child: Wrap(
@@ -325,7 +333,8 @@ class AllTransactionsScreen extends StatelessWidget {
                             ...controller.filteredCategories.map((category) {
                               String displayName = category.name;
                               if (displayName.length > 12) {
-                                displayName = '${displayName.substring(0, 12)}...';
+                                displayName =
+                                    '${displayName.substring(0, 12)}...';
                               }
                               return _buildCategoryChip(
                                 '${category.icon} $displayName',
@@ -341,7 +350,7 @@ class AllTransactionsScreen extends StatelessWidget {
                     }),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Botón limpiar filtros
                   SizedBox(
                     width: double.infinity,
@@ -362,12 +371,14 @@ class AllTransactionsScreen extends StatelessWidget {
       },
     );
   }
-  
-  Widget _buildFilterChip(String label, String value, String selected, VoidCallback onTap, bool isDark) {
+
+  Widget _buildFilterChip(String label, String value, String selected,
+      VoidCallback onTap, bool isDark) {
     final isSelected = selected == value;
-    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textColor =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final chipBgColor = isDark ? Colors.grey[700] : Colors.grey[200];
-    
+
     return FilterChip(
       label: Text(
         label,
@@ -382,12 +393,14 @@ class AllTransactionsScreen extends StatelessWidget {
       checkmarkColor: Colors.white,
     );
   }
-  
-  Widget _buildCategoryChip(String label, int value, int selected, VoidCallback onTap, bool isDark) {
+
+  Widget _buildCategoryChip(
+      String label, int value, int selected, VoidCallback onTap, bool isDark) {
     final isSelected = selected == value;
-    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textColor =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final chipBgColor = isDark ? Colors.grey[700] : Colors.grey[200];
-    
+
     return FilterChip(
       label: Text(
         label,
