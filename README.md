@@ -304,7 +304,9 @@ flutter analyze
 
 ## 📄 Licencia
 
-Este proyecto se distribuye bajo la licencia **MIT**.
+**Copyright (c) 2026 Juan José Carmona Ortiz. Todos los derechos reservados.**
+
+Este software y su código fuente son propiedad exclusiva de Juan José Carmona Ortiz.
 
 Consulta el archivo [`LICENSE`](LICENSE) para conocer los términos completos de la licencia.
 
